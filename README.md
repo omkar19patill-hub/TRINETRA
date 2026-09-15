@@ -1,4 +1,4 @@
-# Trinetra 👁️
+# Trinetra 
 
 ### AI-Powered Continuous Cyber Risk Quantification & Investment Optimization Platform
 
