@@ -1,141 +1,560 @@
-# Trinetra 
+TRINETRA
 
-### AI-Powered Continuous Cyber Risk Quantification & Investment Optimization Platform
+See Risk Before It Strikes.
 
-> **SIH26105** &middot; Smart India Hackathon 2026 &middot; Theme: Blockchain & Cybersecurity &middot; Sponsor: AICTE Cyber Security Cell
+TRINETRA is an AI-powered cyber risk quantification and security investment optimization platform designed to help organizations understand, prioritize, and reduce cyber risk.
 
-🚧 **Work in Progress — built for SIH 2026**
+It connects threat intelligence → contextual risk → financial exposure → security investment → actionable decisions in one continuous workflow.
 
----
+🎯 What is TRINETRA?
 
-## The Problem
+Traditional cybersecurity tools often generate large numbers of vulnerabilities, alerts, and severity scores.
 
-Organizations face thousands of vulnerabilities but can only fix a few, and CVSS scores tell you how severe a flaw is — not how likely it is to be exploited, which business asset it threatens, or what it would actually cost. Risk assessments are typically a once-a-year PDF, disconnected from the board's financial language, and security budgets get spent on a ranked list instead of an actual investment plan.
+The real question for security leaders is:
 
-**Trinetra turns raw threat data into a continuously updated, board-ready decision: where should the next rupee of security budget go?**
+"Which risks matter most to my organization, and where should I spend my limited security budget?"
 
-## What Trinetra Does
+TRINETRA aims to answer that question by combining:
 
-```
-Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investment Optimization  →  Security Action
- (CVE/NVD, KEV, EPSS,          (likelihood ×      (₹ exposure,       (budget-constrained          (Fix / Mitigate /
-  asset & business context)     exposure)          via Open FAIR)     allocation across controls)   Accept / Transfer)
-```
+Threat intelligence
 
-## Key Features
+Vulnerability information
 
-| Feature | What it does |
-|---|---|
-| **Continuous Risk Quantification** | Risk score recalculates automatically as new CVE, KEV, and EPSS data arrives |
-| **Financial Risk Estimation** | Converts findings into an estimated ₹ exposure range, not a single guessed number |
-| **Explainable AI** | Plain-language narrative explains why a score changed, with every assumption traceable |
-| **Investment Optimization** | Allocates a fixed security budget across controls to maximize risk reduction |
-| **What-if Simulation** | Test "cut budget by X%" or "fix this first" before committing real spend |
+Asset and business context
 
-## System Architecture
+Exploitation likelihood
 
-```mermaid
-flowchart TD
-    A["Data Sources<br/>NVD · CISA KEV · EPSS · MITRE ATT&CK · Asset & Business Context"] --> B["Data Ingestion Layer<br/>(scheduled API pollers)"]
-    B --> C["Data Processing / Normalization<br/>(CVE → asset → business unit)"]
-    C --> D["Risk Engine<br/>Loss Event Frequency × Loss Magnitude, Monte Carlo"]
-    D --> E["Financial Risk / Simulation Layer<br/>Annualized Loss Expectancy range"]
-    E --> F["Investment Optimization Engine<br/>Budget-constrained allocation (LP/knapsack)"]
-    F --> G["AI Explanation Layer<br/>Narrates output — does NOT calculate risk"]
-    G --> H["Dashboard<br/>Risk Score · ₹ Exposure · Recommended Actions"]
-```
+Probabilistic risk modelling
 
-**Component split:**
-- **Deterministic/rule-based:** CVE-to-asset mapping, control-to-risk mapping, budget constraint logic
-- **Probabilistic/statistical:** Loss frequency & magnitude distributions, Monte Carlo simulation
-- **AI/LLM:** Narrative explanation and board-ready summaries only — never the core ₹ calculation
-- **Optimization engine:** LP/integer programming solver for budget allocation
+Financial risk estimation
 
-## Tech Stack
+Security investment optimization
 
-| Layer | Technology |
-|---|---|
-| Frontend | React.js + Tailwind CSS |
-| Backend | Python (FastAPI) |
-| AI/ML | LLM API (explanation, asset-to-CVE mapping) + scikit-learn/PyMC |
-| Database | PostgreSQL + Redis |
-| Optimization | SciPy / PuLP |
-| Deployment | Docker, cloud free-tier (AWS/GCP/Azure) |
+What-if simulation
 
-## Data Sources
+Explainable AI
 
-| Source | Provides | Access |
-|---|---|---|
-| [NVD](https://nvd.nist.gov) | CVE details, CVSS, CWE, CPE | Public / free (API) |
-| [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | Confirmed actively-exploited CVEs | Public / free |
-| [FIRST EPSS](https://www.first.org/epss) | Probability of exploitation (next 30 days) | Public / free (API) |
-| [MITRE ATT&CK](https://attack.mitre.org) | Adversary tactics/techniques mapping | Public / free |
-| Synthetic org/asset data | Fills the gap where real enterprise asset & financial data is private | Self-generated, clearly labeled as illustrative |
+Core Concept
 
-## Project Structure
+Cyber Threat
+     ↓
+Contextual Risk
+     ↓
+Financial Exposure
+     ↓
+Investment Optimization
+     ↓
+Security Action
+     ↓
+Continuous Recalculation
 
-```
+👁️ Why "TRINETRA"?
+
+Trinetra represents three eyes of cyber decision-making:
+
+        TRINETRA
+
+     👁 Threat
+        +
+     👁 Risk
+        +
+     👁 Investment
+
+Threat
+
+What threats and vulnerabilities are affecting the organization?
+
+Risk
+
+How significant is that threat for the organization's actual assets and business context?
+
+Investment
+
+Where should limited security resources be allocated to achieve greater expected risk reduction?
+
+Threat + Risk + Investment = TRINETRA
+
+🚀 Key Features
+
+1. Continuous Risk Quantification
+
+Continuously updates cyber risk using changing vulnerabilities, threat signals, exploitation likelihood, asset criticality, and exposure.
+
+2. Financial Risk Estimation
+
+Converts technical cyber exposure into probabilistic estimates of potential financial impact.
+
+3. Explainable AI
+
+Provides understandable explanations for risk drivers, assumptions, and recommendations.
+
+AI is used as a decision-support layer rather than replacing the underlying risk calculations.
+
+4. Investment Optimization
+
+Determines how a defined cybersecurity budget can be allocated to achieve greater expected risk reduction.
+
+5. What-if Simulation
+
+Allows users to compare different security investment scenarios before making a decision.
+
+Example:
+
+Budget: ₹10,00,000
+
+Option A
+Patch critical vulnerability
+        ↓
+Expected Risk Reduction: X
+
+Option B
+Deploy additional security control
+        ↓
+Expected Risk Reduction: Y
+
+TRINETRA
+        ↓
+Compare scenarios
+        ↓
+Recommend the better allocation
+
+🧠 How TRINETRA Works
+
+┌─────────────────────────┐
+│   THREAT INTELLIGENCE   │
+│                         │
+│ NVD • CISA KEV • EPSS  │
+│ MITRE ATT&CK            │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│      RISK ENGINE        │
+│                         │
+│ Threat                  │
+│ Vulnerability           │
+│ Asset Context           │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│     FINANCIAL RISK      │
+│                         │
+│ Estimated Loss          │
+│ Statistical Simulation  │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│ INVESTMENT OPTIMIZATION │
+│                         │
+│ Budget                  │
+│ Risk Reduction          │
+│ Optimal Allocation      │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│     SECURITY ACTION     │
+│                         │
+│ Prioritize              │
+│ Mitigate                │
+│ Monitor                 │
+└─────────────────────────┘
+
+🤖 AI / ML Decision Support
+
+TRINETRA separates core risk calculations from AI-generated explanations.
+
+ML Modelling
+
+Used where data-driven modelling can improve threat or risk analysis.
+
+Statistical Simulation
+
+Used to represent uncertainty and estimate potential financial exposure.
+
+Explainable AI
+
+Used to translate analytical results into understandable recommendations.
+
+Risk Data
+    ↓
+Deterministic / Quantitative Models
+    ↓
+Probabilistic Analysis
+    ↓
+Optimization
+    ↓
+AI Explanation
+    ↓
+Human Decision
+
+The LLM is not the core risk calculator.
+
+This separation helps keep the system more transparent, auditable, and defensible.
+
+🏗️ System Architecture
+
+┌──────────────────┐
+│ Threat           │
+│ Intelligence     │
+│                  │
+│ NVD              │
+│ CISA KEV         │
+│ EPSS             │
+│ MITRE ATT&CK     │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Data Ingestion   │
+│ & Normalization  │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Risk Engine      │
+│                  │
+│ Threat           │
+│ Vulnerability    │
+│ Asset Context    │
+│ Exposure         │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Financial Risk   │
+│ & Simulation     │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Investment       │
+│ Optimization     │
+│                  │
+│ Budget           │
+│ Risk Reduction   │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ AI Explanation   │
+│ & Decision       │
+│ Support          │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ TRINETRA         │
+│ Dashboard        │
+└──────────────────┘
+
+🛠️ Technology Stack
+
+Layer
+
+Technology
+
+Frontend
+
+React.js
+
+Styling
+
+Tailwind CSS
+
+Backend
+
+Python + FastAPI
+
+Data Processing
+
+Pandas + NumPy
+
+Machine Learning
+
+Scikit-learn
+
+Statistical Modelling
+
+SciPy / NumPy
+
+Optimization
+
+Google OR-Tools
+
+Database
+
+PostgreSQL
+
+Containerization
+
+Docker
+
+The stack may evolve as the MVP develops.
+
+📊 Data Sources
+
+TRINETRA is designed to work with publicly available cybersecurity intelligence during the MVP stage.
+
+Source
+
+Purpose
+
+NVD
+
+Vulnerability and CVE information
+
+CISA KEV
+
+Known exploited vulnerabilities
+
+EPSS
+
+Vulnerability exploitation probability
+
+MITRE ATT&CK
+
+Adversary tactics and techniques
+
+Organization Data
+
+Assets, criticality, exposure and business context
+
+Synthetic Data
+
+MVP testing when private enterprise data is unavailable
+
+Private organizational data can be integrated as the platform evolves.
+
+💰 Investment Optimization
+
+One of TRINETRA's core objectives is to move from:
+
+"What vulnerabilities exist?"
+
+to:
+
+"Where should we invest?"
+
+The optimization engine considers:
+
+Available security budget
+
+Candidate security controls
+
+Risk associated with assets
+
+Expected risk reduction
+
+Cost of controls
+
+Different investment scenarios
+
+Conceptually:
+
+        Security Budget
+              │
+              ▼
+    ┌──────────────────┐
+    │ Candidate        │
+    │ Security Actions │
+    └────────┬─────────┘
+             │
+             ▼
+     Estimate Risk
+       Reduction
+             │
+             ▼
+     Compare Scenarios
+             │
+             ▼
+      Optimal Allocation
+
+🔮 What-if Simulation
+
+TRINETRA allows security teams to explore alternative investment decisions.
+
+Example questions:
+
+"What if we increase the security budget?"
+
+"What if we patch this vulnerability first?"
+
+"What if we deploy this security control?"
+
+"What if we choose Control A instead of Control B?"
+
+"Which investment gives greater expected risk reduction?"
+
+The goal is to make cybersecurity investment decisions evidence-based and budget-aware.
+
+🎯 Target Users
+
+TRINETRA is intended for organizations that need to make risk-based cybersecurity investment decisions.
+
+Primary Users
+
+CISOs
+
+Security Operations Teams
+
+Enterprise Security Teams
+
+Risk Management Teams
+
+Regulated Industries
+
+Government Organizations
+
+Critical Infrastructure Operators
+
+📈 Long-Term Vision
+
+TRINETRA is designed to evolve from an SIH MVP into a scalable cyber risk decision platform.
+
+SIH MVP
+   ↓
+Enterprise Integration
+   ↓
+Multi-Organization Platform
+   ↓
+Government / Critical Infrastructure
+
+Future capabilities may include:
+
+Enterprise asset integrations
+
+Real-time threat intelligence
+
+Advanced probabilistic risk models
+
+Improved financial risk modelling
+
+Security control effectiveness modelling
+
+Automated risk reporting
+
+Advanced investment optimization
+
+Multi-organization risk management
+
+🧪 Current Project Status
+
+Status: 🚧 MVP Under Development
+
+Current development focus:
+
+Project foundation
+
+Database schema
+
+Threat intelligence ingestion
+
+Vulnerability normalization
+
+Asset and business context modelling
+
+Initial risk engine
+
+Financial risk model
+
+Investment optimization
+
+What-if simulation
+
+Explainable AI layer
+
+Web dashboard
+
+Testing
+
+Deployment
+
+📁 Project Structure
+
+The project will follow a modular architecture.
+
 trinetra/
-├── frontend/              # React + Tailwind dashboard
+│
+├── frontend/
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+│
 ├── backend/
-│   └── app/
-│       ├── ingestion/      # NVD / CISA KEV / EPSS pollers
-│       ├── risk_engine/    # Open FAIR-based quantification, Monte Carlo
-│       ├── optimization/   # Budget-constrained solver
-│       ├── explanation/    # LLM narrative layer
-│       └── api/
-├── docker-compose.yml
-├── docs/                   # research references, architecture notes
-└── README.md
-```
-*(Adjust to match your actual layout — this is the structure implied by the tech stack above.)*
+│   ├── app/
+│   │   ├── api/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   └── core/
+│   │
+│   └── tests/
+│
+├── risk-engine/
+│   ├── scoring/
+│   ├── modelling/
+│   ├── simulation/
+│   └── optimization/
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── synthetic/
+│
+├── docs/
+│
+├── docker/
+│
+├── .gitignore
+├── README.md
+└── LICENSE
 
-## Getting Started
+🔐 Security & Responsible Use
 
-**Prerequisites:** Node.js 18+, Python 3.11+, Docker (optional, for full-stack run)
+TRINETRA is designed as a cyber risk decision-support platform.
 
-```bash
-# Clone the repo
-git clone https://github.com/<your-org>/trinetra.git
-cd trinetra
+It does not aim to replace:
 
-# Backend
-cd backend
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env        # set DATABASE_URL, REDIS_URL, LLM_API_KEY
-uvicorn app.main:app --reload
+Security professionals
 
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-```
+Risk managers
 
-Or run the full stack with Docker:
-```bash
-docker-compose up --build
-```
+Incident response teams
 
-## Roadmap
+Organizational governance
 
-```
-SIH MVP → Enterprise Integration (real asset inventory/CMDB, SIEM)
-        → Multi-Organization (MSSP/insurer view across clients)
-        → Government / Critical Infrastructure (sector-wide risk visibility)
-```
+Professional security assessments
 
-## References
+Financial outputs should be interpreted as probabilistic estimates based on available data and assumptions, not guaranteed predictions of actual losses.
 
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
-- [NIST SP 800-30 Rev.1 — Guide for Conducting Risk Assessments](https://csrc.nist.gov/pubs/sp/800/30/r1/final)
-- [Open FAIR, The Open Group / FAIR Institute](https://www.fairinstitute.org/about)
-- Tsiodra, Panda, Chronopoulos & Panaousis, *"Cyber Risk Assessment and Optimization,"* IEEE Access, 2023 — [doi.org/10.1109/ACCESS.2023.3272670](https://doi.org/10.1109/ACCESS.2023.3272670)
+🏆 Built for Smart India Hackathon 2026
 
-## License
+TRINETRA is being developed as part of Smart India Hackathon 2026.
 
-No license has been selected yet. For a hackathon/academic project, [MIT](https://choosealicense.com/licenses/mit/) is a common default — add a `LICENSE` file once the team decides.
+Problem Statement
 
-## Acknowledgments
+AI-Powered Continuous Cyber Risk Quantification and Investment Optimization Platform
 
-Built on public data and standards from NIST, CISA, FIRST.org, MITRE, and The Open Group / FAIR Institute.
+Core Objective
+
+Move from Cyber Threat → Risk → Financial Impact → Optimal Security Investment.
+
+👥 Team
+
+Team Vajra
+
+📜 License
+
+This project is currently under active development.
+
+License information will be added as the project matures.
+
+⭐ Vision
+
+See Risk Before It Strikes.
+
+TRINETRA aims to help organizations move from reactive vulnerability management toward continuous, quantitative, financially informed, and optimized cybersecurity decision-making.
