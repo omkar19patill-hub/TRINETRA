@@ -8,10 +8,6 @@
 
 ---
 
-## About the Name
-
-In Sanskrit, *त्रिनेत्र (Trinetra)* — the third eye — sees what the other two cannot. Most security tools show you *what's vulnerable*. Trinetra shows you *what it's actually worth to your business, and where the next rupee of security budget should go* — continuously, not once a year.
-
 ## The Problem
 
 Organizations face thousands of vulnerabilities but can only fix a few, and CVSS scores tell you how severe a flaw is — not how likely it is to be exploited, which business asset it threatens, or what it would actually cost. Risk assessments are typically a once-a-year PDF, disconnected from the board's financial language, and security budgets get spent on a ranked list instead of an actual investment plan.
@@ -22,7 +18,7 @@ Organizations face thousands of vulnerabilities but can only fix a few, and CVSS
 
 ```
 Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investment Optimization  →  Security Action
- (CVE/NVD, KEV, EPSS,          (likelihood ×      (₹ exposure,       (budget-constrained          (Fix / Mitigate /
+ (CVE/NVD, KEV, EPSS,          (likelihood ×      (₹ exposure,       budget-constrained          (Fix / Mitigate /
   asset & business context)     exposure)          via Open FAIR)     allocation across controls)   Accept / Transfer)
 ```
 
@@ -131,16 +127,6 @@ SIH MVP → Enterprise Integration (real asset inventory/CMDB, SIEM)
 
 ## Team
 
-| Name | Role |
-|---|---|
-| — | Team Lead |
-| — | Backend / Data Engineering |
-| — | Risk & Optimization Modeling |
-| — | Frontend |
-| — | AI/LLM Integration |
-| — | Research & Presentation |
-
-*(Fill in team member names and GitHub handles.)*
 
 ## References
 
