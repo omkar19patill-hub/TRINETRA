@@ -32,7 +32,7 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 | **Investment Optimization** | Allocates a fixed security budget across controls to maximize risk reduction |
 | **What-if Simulation** | Test "cut budget by X%" or "fix this first" before committing real spend |
 
-## 🏗️ System Architecture
+##  System Architecture
 
 <p align="center">
   <img src="Assets/system-architecture.png" alt="TRINETRA System Architecture" width="100%">
