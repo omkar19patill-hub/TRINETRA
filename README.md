@@ -32,18 +32,11 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 | **Investment Optimization** | Allocates a fixed security budget across controls to maximize risk reduction |
 | **What-if Simulation** | Test "cut budget by X%" or "fix this first" before committing real spend |
 
-## System Architecture
+## 🏗️ System Architecture
 
-```mermaid
-flowchart TD
-    A["Data Sources<br/>NVD · CISA KEV · EPSS · MITRE ATT&CK · Asset & Business Context"] --> B["Data Ingestion Layer<br/>(scheduled API pollers)"]
-    B --> C["Data Processing / Normalization<br/>(CVE → asset → business unit)"]
-    C --> D["Risk Engine<br/>Loss Event Frequency × Loss Magnitude, Monte Carlo"]
-    D --> E["Financial Risk / Simulation Layer<br/>Annualized Loss Expectancy range"]
-    E --> F["Investment Optimization Engine<br/>Budget-constrained allocation (LP/knapsack)"]
-    F --> G["AI Explanation Layer<br/>Narrates output — does NOT calculate risk"]
-    G --> H["Dashboard<br/>Risk Score · ₹ Exposure · Recommended Actions"]
-```
+<p align="center">
+  <img src="Assets/system-architecture.png" alt="TRINETRA System Architecture" width="100%">
+</p>
 
 **Component split:**
 - **Deterministic/rule-based:** CVE-to-asset mapping, control-to-risk mapping, budget constraint logic
