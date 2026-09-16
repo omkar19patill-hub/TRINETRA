@@ -1,0 +1,47 @@
+[
+  {
+    "asset_id": "AST-001",
+    "cve_id": "CVE-001",
+    "cvss": 9.8,
+    "epss": 0.82,
+    "kev": true,
+    "internet_exposed": true,
+    "criticality": "Critical"
+  },
+  {
+    "asset_id": "AST-002",
+    "cve_id": "CVE-002",
+    "cvss": 5.4,
+    "epss": 0.12,
+    "kev": false,
+    "internet_exposed": false,
+    "criticality": "Medium"
+  },
+  {
+    "asset_id": "AST-003",
+    "cve_id": "CVE-003",
+    "cvss": 7.5,
+    "epss": 0.50,
+    "kev": false,
+    "internet_exposed": true,
+    "criticality": "High"
+  },
+  {
+    "asset_id": "AST-004",
+    "cve_id": "CVE-004",
+    "cvss": 2.5,
+    "epss": 0.02,
+    "kev": false,
+    "internet_exposed": false,
+    "criticality": "Low"
+  },
+  {
+    "asset_id": "AST-005",
+    "cve_id": "CVE-005",
+    "cvss": 9.8,
+    "epss": 0.90,
+    "kev": true,
+    "internet_exposed": true,
+    "criticality": "Low"
+  }
+]
