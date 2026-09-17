@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Run Integration Layer (Port 8002)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/Backend-integration/main.py",
+      "cwd": "${workspaceFolder}/Backend-integration",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "⚡ Run Cyber Risk Engine (Port 8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/Backend-riskEngine/main.py",
+      "cwd": "${workspaceFolder}/Backend-riskEngine",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run Integration Layer Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests", "-v"],
+      "cwd": "${workspaceFolder}/Backend-integration",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run Risk Engine Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["risk/tests.py", "-v"],
+      "cwd": "${workspaceFolder}/Backend-riskEngine",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

@@ -64,7 +64,7 @@ def calculate_risk(
         cvss_normalized=cvss_normalized,
         epss=validated_request.epss,
         kev=validated_request.kev,
-        internet_exposed=validated_request.internet_exposed,
+        internet_exposed=validated_request.internet_exposed
     )
 
     # 3. Calculate Impact
@@ -87,7 +87,7 @@ def calculate_risk(
         epss=validated_request.epss,
         kev=validated_request.kev,
         internet_exposed=validated_request.internet_exposed,
-        criticality=criticality_str,
+        criticality=criticality_str
     )
 
     # 7. Construct Calculation Breakdown
@@ -96,7 +96,7 @@ def calculate_risk(
     # 8. Model Governance Info
     model_info = ModelInfo(
         version=MODEL_VERSION,
-        type=MODEL_TYPE,
+        type=MODEL_TYPE
     )
 
     # 9. Assemble Response
@@ -109,5 +109,5 @@ def calculate_risk(
         risk_level=risk_level,
         risk_drivers=drivers,
         calculation=calculation_breakdown,
-        model=model_info,
+        model=model_info
     )

@@ -18,22 +18,22 @@ if str(CURRENT_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.risk import router as risk_router
-from risk.constants import MODEL_VERSION
+from financial_crq.routes import router as financial_crq_router
+from monte_carlo.routes import router as monte_carlo_router
+from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
+from financial_crq.engine import FINANCIAL_MODEL_VERSION
+from monte_carlo.simulator import MONTE_CARLO_MODEL_VERSION
 
 app = FastAPI(
-    title="TRINETRA Cyber Risk Engine",
+    title="TRINETRA Cyber Risk, Financial CRQ & Monte Carlo Engine",
     description="""
 ### AI-Powered Continuous Cyber Risk Quantification & Investment Optimization Platform
-**SIH 2026 &middot; Deterministic Cyber Risk Scoring Engine**
+**SIH 2026 &middot; Cyber Risk Scoring, Financial CRQ & Monte Carlo Simulation Engine**
 
-This backend module performs deterministic, explainable risk scoring by synthesizing:
-- Technical severity (**CVSS**)
-- Real-world weaponization & exploit probability (**EPSS**)
-- Active exploitation intelligence (**CISA KEV**)
-- Operational exposure (**Internet Facing**)
-- Business context (**Asset Criticality**)
-
-Provides complete mathematical breakdowns and rule-based risk drivers for explainability.
+This backend service provides:
+1. **Cyber Risk Scoring Module (`/risk`):** Deterministic risk quantification synthesizing CVSS, EPSS, CISA KEV, internet exposure, and asset criticality.
+2. **Financial CRQ Module (`/financial-crq`):** Financial cyber-risk modeling computing Downtime Loss, Total Loss Magnitude, Modeled Loss Event Frequency, and Expected Annual Loss (EAL).
+3. **Monte Carlo Simulation Module (`/monte-carlo`):** Stochastic simulation modeling uncertainty in event frequency and loss magnitudes, providing percentiles (P50, P75, P90, P95, P99) and histogram distribution analytics.
 """,
     version="1.0.0",
     docs_url="/docs",
@@ -49,22 +49,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount the Risk Engine router
+# Mount routers
 app.include_router(risk_router)
+app.include_router(financial_crq_router)
+app.include_router(monte_carlo_router)
 
 
 @app.get("/", tags=["General"])
 def root_info():
-    """Root metadata endpoint with pointers to documentation and health check."""
+    """Root metadata endpoint with pointers to documentation and health checks."""
     return {
         "project": "TRINETRA - Cyber Risk Quantification & Investment Optimization",
-        "module": "Risk Engine",
+        "modules": ["Risk Engine", "Financial CRQ", "Monte Carlo Simulation"],
         "version": "1.0.0",
-        "model_version": MODEL_VERSION,
+        "risk_model_version": RISK_MODEL_VERSION,
+        "financial_crq_model_version": FINANCIAL_MODEL_VERSION,
+        "monte_carlo_model_version": MONTE_CARLO_MODEL_VERSION,
         "swagger_docs": "/docs",
         "redoc_docs": "/redoc",
-        "health_check": "/risk/health",
+        "endpoints": {
+            "risk_calculate": "/risk/calculate",
+            "risk_health": "/risk/health",
+            "financial_crq_calculate": "/financial-crq/calculate",
+            "financial_crq_health": "/financial-crq/health",
+            "monte_carlo_simulate": "/monte-carlo/simulate",
+            "monte_carlo_from_crq": "/monte-carlo/from-crq",
+            "monte_carlo_health": "/monte-carlo/health",
+        },
     }
+
+
 
 
 if __name__ == "__main__":

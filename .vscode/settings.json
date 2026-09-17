@@ -1,0 +1,12 @@
+{
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "Backend-integration/tests",
+    "Backend-riskEngine/risk"
+  ],
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/Backend-integration",
+    "${workspaceFolder}/Backend-riskEngine"
+  ]
+}

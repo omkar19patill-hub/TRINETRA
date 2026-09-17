@@ -18,6 +18,8 @@ from .constants import (
 from .schemas import (
     RiskCalculationRequest,
     RiskCalculationResponse,
+    RiskInput,
+    RiskResult,
     CalculationBreakdown,
     ModelInfo,
     CriticalityEnum,
@@ -43,6 +45,8 @@ __all__ = [
     "CRITICALITY_IMPACT",
     "RiskCalculationRequest",
     "RiskCalculationResponse",
+    "RiskInput",
+    "RiskResult",
     "CalculationBreakdown",
     "ModelInfo",
     "CriticalityEnum",
@@ -55,3 +59,4 @@ __all__ = [
     "generate_risk_drivers",
     "calculate_risk",
 ]
+

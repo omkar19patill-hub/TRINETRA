@@ -46,7 +46,7 @@ The core scoring logic (`risk/engine.py`, `risk/scoring.py`, `risk/drivers.py`) 
 ```text
 Backend-riskEngine/
 │
-├── risk/
+├── risk/                 # Cyber Risk Scoring Module
 │   ├── __init__.py       # Package exports
 │   ├── constants.py      # Weights, impact mappings, thresholds, model metadata
 │   ├── schemas.py        # Pydantic request & response schemas + validation
@@ -55,14 +55,32 @@ Backend-riskEngine/
 │   ├── engine.py         # Core orchestrator decoupled from HTTP
 │   └── tests.py          # 19 automated unit & integration tests
 │
+├── financial_crq/        # Financial Cyber Risk Quantification (CRQ) Layer (DEV 1)
+│   ├── __init__.py       # Package exports & public API
+│   ├── schemas.py        # FinancialCRQInput, FinancialCRQResult, MonteCarloInput
+│   ├── engine.py         # Financial modeling engine (Downtime loss, EAL, Event frequency)
+│   ├── routes.py         # FastAPI routes: POST /financial-crq/calculate, GET /financial-crq/health
+│   ├── tests.py          # 18 automated unit & integration tests
+│   └── README.md         # Financial CRQ & DEV 2 integration documentation
+│
+├── monte_carlo/          # Monte Carlo Simulation Layer (DEV 2)
+│   ├── __init__.py       # Package exports & public API
+│   ├── schemas.py        # MonteCarloInput, MonteCarloResult, HistogramBin
+│   ├── simulator.py      # Stochastic simulation engine (Triangular sampling, percentiles)
+│   ├── routes.py         # FastAPI routes: POST /monte-carlo/simulate, POST /monte-carlo/from-crq
+│   ├── tests.py          # 16 automated unit & integration tests
+│   └── README.md         # Monte Carlo uncertainty modeling documentation
+│
 ├── api/
 │   ├── __init__.py       # Router exports
 │   └── risk.py           # FastAPI routes: POST /risk/calculate, GET /risk/health
 │
-├── main.py               # FastAPI application entrypoint with CORS & Swagger UI
+├── main.py               # Unified FastAPI entrypoint with CORS & Swagger UI
 ├── requirements.txt      # Dependency specification
-└── README.md             # Documentation & Postman testing guide
+└── README.md             # Documentation & testing guide
 ```
+
+
 
 ---
 

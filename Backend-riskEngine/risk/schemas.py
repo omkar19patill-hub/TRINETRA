@@ -219,3 +219,9 @@ class HealthResponse(BaseModel):
     status: str = Field(default="ok", examples=["ok"])
     module: str = Field(default="risk-engine", examples=["risk-engine"])
     model_version: str = Field(default="risk-model-v1", examples=["risk-model-v1"])
+
+
+# Cross-module compatibility aliases
+RiskInput = RiskCalculationRequest
+RiskResult = RiskCalculationResponse
+
