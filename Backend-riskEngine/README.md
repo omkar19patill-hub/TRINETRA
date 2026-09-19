@@ -1,43 +1,72 @@
-# TRINETRA — Cyber Risk Engine Module
+# TRINETRA — Unified Cyber Risk Quantification & Threat Intelligence Engine
 
 ### AI-Powered Continuous Cyber Risk Quantification and Investment Optimization Platform
 **SIH 2026 &middot; Theme: Blockchain & Cybersecurity &middot; Problem ID: SIH26105**
 
 ---
 
-## 1. Overview
+## 1. Overview & Request Pipeline
 
-The **Risk Engine** is the deterministic, explainable cyber risk scoring module of the TRINETRA platform. It takes vulnerability severity metrics (CVSS, EPSS, CISA KEV) paired with asset operational context (Internet exposure, business criticality) and computes:
+`Backend-riskEngine` is the **primary backend application** for the TRINETRA cybersecurity platform. It unifies real-time threat intelligence ingestion, validation, normalization, and caching with deterministic risk quantification, financial cyber-risk modeling (Open FAIR), and stochastic Monte Carlo simulation into a single unified service.
 
-1. **Likelihood of Exploitation** $[0.0 - 1.0]$
-2. **Business Impact Multiplier** $[0.0 - 1.0]$
-3. **Overall Risk Score** $[0.0 - 100.0]$
-4. **Categorical Risk Level** (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
-5. **Explainable Risk Drivers** (Human-readable justifications for why the score is high)
-6. **Detailed Calculation Breakdown** (Individual factor contributions for auditing)
-7. **Model Governance Metadata** (`risk-model-v1`, deterministic)
-
-### Decoupled Layered Architecture
+### Unified Request Pipeline
 
 ```
-                 API REQUEST
-                     ↓
-              Pydantic Schema (Validation)
-                     ↓
-                Risk Engine (Orchestrator)
-                     ↓
-        ┌────────────┼────────────┐
-        ↓            ↓            ↓
-    Likelihood     Impact      Drivers
-        ↓            ↓            ↓
-        └────────────┼────────────┘
-                     ↓
-               Risk Result
-                     ↓
-                API Response
+┌────────────────────────────────────────────────────────┐
+│ Data Upload / Live Official Threat Feeds (NVD, EPSS,   │
+│               CISA KEV, MITRE ATT&CK)                  │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│   Ingestion Layer (Mode A Live Sync / Mode B Bulk)     │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│     Validation (CVE format, CVSS [0-10], EPSS [0-1])   │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Normalization (UnifiedVulnerabilityRecord & Provenance)│
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Multi-Tier Cache (In-Memory LRU + SQLite WAL Storage)  │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Asset Join (/vulnerabilities/risk-engine-payload)      │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Deterministic Risk Engine (/risk/calculate)            │
+│  - Likelihood: 25% CVSS + 40% EPSS + 20% KEV + 15% Exp │
+│  - Impact Multiplier: [0.25 - 1.00] from Criticality   │
+│  - Risk Score: [0.0 - 100.0] & Explainable Drivers     │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Financial CRQ Engine (/financial-crq/calculate)        │
+│  - Downtime Loss = Revenue Loss/hr × Downtime Hours    │
+│  - Total Loss Magnitude = Downtime + Response + Legal  │
+│  - Event Frequency = Baseline Freq × Likelihood        │
+│  - Expected Annual Loss (EAL) = Frequency × Magnitude  │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ Monte Carlo Simulation (/monte-carlo/simulate)         │
+│  - 1,000 - 100,000 Stochastic Iterations               │
+│  - Triangular / PERT Distribution Sampling             │
+│  - Percentiles (P50, P75, P90, P95, P99) & Histograms  │
+└────────────────────────────────────────────────────────┘
 ```
-
-The core scoring logic (`risk/engine.py`, `risk/scoring.py`, `risk/drivers.py`) is completely independent of FastAPI and HTTP. It can be invoked directly by batch ingestion scripts, database workers, or background queues.
 
 ---
 
@@ -45,126 +74,112 @@ The core scoring logic (`risk/engine.py`, `risk/scoring.py`, `risk/drivers.py`) 
 
 ```text
 Backend-riskEngine/
-│
-├── risk/                 # Cyber Risk Scoring Module
-│   ├── __init__.py       # Package exports
-│   ├── constants.py      # Weights, impact mappings, thresholds, model metadata
-│   ├── schemas.py        # Pydantic request & response schemas + validation
-│   ├── scoring.py        # Mathematical scoring functions (Likelihood, Impact, Risk Score, Level)
-│   ├── drivers.py        # Explainable rule-based risk driver generator
-│   ├── engine.py         # Core orchestrator decoupled from HTTP
-│   └── tests.py          # 19 automated unit & integration tests
-│
-├── financial_crq/        # Financial Cyber Risk Quantification (CRQ) Layer (DEV 1)
-│   ├── __init__.py       # Package exports & public API
-│   ├── schemas.py        # FinancialCRQInput, FinancialCRQResult, MonteCarloInput
-│   ├── engine.py         # Financial modeling engine (Downtime loss, EAL, Event frequency)
-│   ├── routes.py         # FastAPI routes: POST /financial-crq/calculate, GET /financial-crq/health
-│   ├── tests.py          # 18 automated unit & integration tests
-│   └── README.md         # Financial CRQ & DEV 2 integration documentation
-│
-├── monte_carlo/          # Monte Carlo Simulation Layer (DEV 2)
-│   ├── __init__.py       # Package exports & public API
-│   ├── schemas.py        # MonteCarloInput, MonteCarloResult, HistogramBin
-│   ├── simulator.py      # Stochastic simulation engine (Triangular sampling, percentiles)
-│   ├── routes.py         # FastAPI routes: POST /monte-carlo/simulate, POST /monte-carlo/from-crq
-│   ├── tests.py          # 16 automated unit & integration tests
-│   └── README.md         # Monte Carlo uncertainty modeling documentation
-│
-├── api/
-│   ├── __init__.py       # Router exports
-│   └── risk.py           # FastAPI routes: POST /risk/calculate, GET /risk/health
-│
-├── main.py               # Unified FastAPI entrypoint with CORS & Swagger UI
+├── main.py               # Primary FastAPI unified entrypoint (Port 8000)
+├── config.py             # Centralized configuration & environment settings
 ├── requirements.txt      # Dependency specification
-└── README.md             # Documentation & testing guide
+│
+├── api/                  # Unified API Layer
+│   ├── __init__.py       # Router exports
+│   ├── risk.py           # /risk endpoints
+│   └── ingestion.py      # /vulnerabilities & /ingestion endpoints
+│
+├── risk/                 # Deterministic Cyber Risk Scoring
+│   ├── constants.py      # Factor weights (CVSS:0.25, EPSS:0.40, KEV:0.20, EXP:0.15)
+│   ├── schemas.py        # RiskCalculationRequest & RiskCalculationResponse
+│   ├── scoring.py        # Likelihood, Impact, Risk Score, and Risk Level
+│   ├── drivers.py        # Explainable qualitative risk driver generator
+│   ├── engine.py         # Decoupled risk calculation orchestrator
+│   └── tests.py          # Legacy unit test suite
+│
+├── financial_crq/        # Financial Cyber Risk Quantification (Open FAIR)
+│   ├── schemas.py        # FinancialCRQInput, FinancialCRQResult, MonteCarloInput
+│   ├── engine.py         # Downtime loss, total loss magnitude, EAL, explanation
+│   ├── routes.py         # /financial-crq routes
+│   └── tests.py          # Legacy financial CRQ test suite
+│
+├── monte_carlo/          # Stochastic Uncertainty Simulation
+│   ├── schemas.py        # MonteCarloInput, MonteCarloResult, HistogramBin
+│   ├── simulator.py      # Monte Carlo sampler, percentiles, histogram builder
+│   ├── routes.py         # /monte-carlo routes
+│   └── tests.py          # Legacy Monte Carlo test suite
+│
+├── schemas/              # Threat Intelligence Schemas
+│   ├── __init__.py       # Schemas package init
+│   └── vulnerability.py  # UnifiedVulnerabilityRecord, EnrichedVulnerabilityResponse, etc.
+│
+├── validation/           # Data Validation Layer
+│   ├── __init__.py       # Validation package init
+│   └── vulnerability_validator.py  # Strict regex, bounds checking [0-10, 0-1]
+│
+├── normalization/        # Data Normalization Layer
+│   ├── __init__.py       # Normalization package init
+│   └── vulnerability_normalizer.py # Normalization to canonical schema
+│
+├── integrations/         # Official Threat Intelligence Adapters
+│   ├── __init__.py       # Adapters package init
+│   ├── nvd.py            # NVD 2.0 API client with backoff & rate-limiting
+│   ├── epss.py           # FIRST EPSS API client with batch queries
+│   ├── cisa_kev.py       # CISA KEV JSON catalog client with O(1) in-memory index
+│   └── mitre_attack.py   # MITRE ATT&CK contextual mapping
+│
+├── cache/                # Multi-Tier Storage & Caching
+│   ├── __init__.py       # Cache package init
+│   └── vulnerability_cache.py # SQLite persistent store (WAL mode) + LRU memory cache
+│
+├── ingestion/            # Ingestion Service & Workers
+│   ├── __init__.py       # Ingestion package init
+│   ├── service.py        # Central IngestionService with recalculation hooks
+│   ├── scheduler.py      # Periodic bulk synchronization scheduler
+│   └── status.py         # Telemetry & observability metrics tracker
+│
+└── tests/                # Comprehensive Automated Test Suite (95 tests)
+    ├── test_unified_backend.py     # App initialization, metadata, health checks
+    ├── test_end_to_end.py          # Full pipeline E2E test
+    ├── test_risk_engine.py         # Risk scoring benchmarks & boundaries
+    ├── test_financial_crq.py       # Financial loss & EAL calculations
+    ├── test_monte_carlo.py         # Monte Carlo simulation & percentiles
+    ├── test_api_routes.py          # Ingestion & vulnerability endpoints
+    ├── test_cache_storage.py       # SQLite persistence & filtering
+    ├── test_cisa_kev.py            # CISA KEV indexing & lookups
+    ├── test_epss.py                # FIRST EPSS single & batch lookups
+    ├── test_nvd.py                 # NVD 2.0 CVSS parsing & resiliency
+    ├── test_mitre_attack.py        # ATT&CK enrichment heuristics
+    ├── test_normalization.py       # Normalization & contract transforms
+    └── test_validation.py          # Input boundary & format validation
 ```
-
-
 
 ---
 
-## 3. Mathematical Model & Formulas
+## 3. Configuration & Environment Variables
 
-### Step 1: CVSS Normalization
+Configuration is loaded from environment variables or a local `.env` file via [config.py](file:///d:/TRINETRA/Backend-riskEngine/config.py).
 
-$$\text{CVSS}_{\text{normalized}} = \frac{\text{CVSS}}{10.0}$$
-
-- CVSS $10.0 \rightarrow 1.0$
-- CVSS $5.0 \rightarrow 0.5$
-- CVSS $0.0 \rightarrow 0.0$
-
-### Step 2: Exploitation Likelihood
-
-$$\text{Likelihood} = (0.25 \times \text{CVSS}_{\text{normalized}}) + (0.40 \times \text{EPSS}) + (0.20 \times \text{KEV}_{\text{signal}}) + (0.15 \times \text{Exposure}_{\text{signal}})$$
-
-Where binary signals are:
-- $\text{KEV}_{\text{signal}} = 1$ if listed in CISA KEV catalog, else $0$
-- $\text{Exposure}_{\text{signal}} = 1$ if asset is internet-facing, else $0$
-
-Configurable constants in `risk/constants.py`:
-```python
-CVSS_WEIGHT = 0.25
-EPSS_WEIGHT = 0.40
-KEV_WEIGHT = 0.20
-EXPOSURE_WEIGHT = 0.15
-```
-
-### Step 3: Business Impact
-
-Deterministic mapping from asset business criticality:
-```python
-CRITICALITY_IMPACT = {
-    "Critical": 1.00,
-    "High":     0.75,
-    "Medium":   0.50,
-    "Low":      0.25,
-}
-```
-
-### Step 4: Overall Risk Score
-
-$$\text{Risk Score} = \text{Likelihood} \times \text{Impact} \times 100$$
-
-- Clamped strictly within $[0.0, 100.0]$
-- Rounded to 2 decimal places
-
-### Step 5: Categorical Risk Level
-
-| Score Range | Risk Level |
-|---|---|
-| $75.0 - 100.0$ | **CRITICAL** |
-| $50.0 - 74.99$ | **HIGH** |
-| $25.0 - 49.99$ | **MEDIUM** |
-| $0.0 - 24.99$ | **LOW** |
-
-### Step 6: Explainable Risk Drivers
-
-Rule-based conditions trigger explainability tags:
-- $\text{CVSS} \ge 9.0 \implies$ `"Critical CVSS"`
-- $\text{EPSS} \ge 0.70 \implies$ `"High exploitation probability"`
-- $\text{KEV} == \text{True} \implies$ `"Known exploited vulnerability"`
-- $\text{internet\_exposed} == \text{True} \implies$ `"Internet exposed asset"`
-- $\text{criticality} == \text{"Critical"} \implies$ `"Critical business asset"`
+| Environment Variable | Default Value | Description |
+|---|---|---|
+| `HOST` | `0.0.0.0` | Primary server bind address |
+| `PORT` | `8000` | Primary server listening port |
+| `DEBUG` | `false` | Enable debug logging |
+| `DATABASE_PATH` | `./vulnerabilities.db` | Path to local SQLite storage file |
+| `CACHE_MAX_ENTRIES` | `5000` | Maximum records in memory LRU cache |
+| `CACHE_TTL_SECONDS` | `86400` (24h) | In-memory cache TTL |
+| `ENABLE_SCHEDULER` | `true` | Enable background bulk synchronization worker |
+| `SYNC_INTERVAL_HOURS` | `6.0` | Interval between scheduled bulk synchronizations |
+| `NVD_API_KEY` | `None` | Optional NVD 2.0 API key (increases rate limit) |
+| `NVD_BASE_URL` | `https://services.nvd.nist.gov/rest/json/cves/2.0` | Official NVD endpoint |
+| `EPSS_BASE_URL` | `https://api.first.org/data/v1/epss` | Official FIRST EPSS endpoint |
+| `CISA_KEV_FEED_URL` | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | CISA KEV JSON catalog feed |
 
 ---
 
-## 4. Setup & Running Locally
-
-### Prerequisites
-- Python 3.11+ (Python 3.13 recommended)
+## 4. Starting the Primary Backend Application
 
 ### 1. Install Dependencies
 ```bash
+cd Backend-riskEngine
 pip install -r requirements.txt
 ```
 
-### 2. Run Automated Unit Tests
-```bash
-pytest risk/tests.py -v
-```
-
-### 3. Start the FastAPI Server
+### 2. Start Server
 ```bash
 uvicorn main:app --reload --port 8000
 ```
@@ -173,194 +188,51 @@ Or directly:
 python main.py
 ```
 
-The server will be live at: `http://localhost:8000`
-- Interactive Swagger UI: `http://localhost:8000/docs`
-- ReDoc UI: `http://localhost:8000/redoc`
+- **Interactive Swagger Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc Documentation:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **Root Metadata & Discovery:** [http://localhost:8000/](http://localhost:8000/)
 
 ---
 
-## 5. Postman Testing Guide
+## 5. API Endpoint Catalog
 
-### Endpoint 1: Health Check
+### General & Metadata
+- `GET /` — Root metadata endpoint advertising all modules, active model versions, and registered API routes.
 
-- **Method:** `GET`
-- **URL:** `http://localhost:8000/risk/health`
-- **Headers:** None needed
+### Threat Intelligence & Ingestion
+- `GET /vulnerabilities/{cve_id}/enriched` — Retrieve normalized threat intelligence (CVSS, EPSS, KEV) from cache.
+- `POST /vulnerabilities/risk-engine-payload` — Combine asset context with CVE intelligence into Risk Engine payload.
+- `POST /ingestion/vulnerability/{cve_id}/refresh` — Trigger live upstream sync for a single CVE across official sources.
+- `POST /ingestion/bulk-sync` — Trigger on-demand bulk sync for CISA KEV catalog and watchlist CVEs.
+- `GET /ingestion/health` — Probe live reachability for NVD, EPSS, CISA KEV, and local database.
+- `GET /ingestion/status` — Operational telemetry, sync timestamps, record counts, and cache metrics.
+- `GET /vulnerabilities` — Paginated querying and filtering of cached vulnerability catalog.
 
-#### Expected Response (`200 OK`):
-```json
-{
-  "status": "ok",
-  "module": "risk-engine",
-  "model_version": "risk-model-v1"
-}
-```
+### Deterministic Risk Engine
+- `POST /risk/calculate` — Calculate deterministic risk score, likelihood, impact multiplier, and explainable risk drivers.
+- `GET /risk/health` — Risk Engine module health check.
 
----
+### Financial CRQ (Open FAIR)
+- `POST /financial-crq/calculate` — Compute Downtime Loss, Total Loss Magnitude, Annual Event Frequency, and EAL.
+- `GET /financial-crq/health` — Financial CRQ module health check.
 
-### Endpoint 2: Calculate Risk (Benchmark Scenario 1 — Critical Risk)
-
-- **Method:** `POST`
-- **URL:** `http://localhost:8000/risk/calculate`
-- **Headers:**
-  - `Content-Type: application/json`
-- **Request Body (raw JSON):**
-```json
-{
-  "asset_id": "AST-001",
-  "cve_id": "CVE-2026-1234",
-  "cvss": 9.8,
-  "epss": 0.82,
-  "kev": true,
-  "internet_exposed": true,
-  "criticality": "Critical"
-}
-```
-
-#### Expected Response (`200 OK`):
-```json
-{
-  "asset_id": "AST-001",
-  "cve_id": "CVE-2026-1234",
-  "likelihood": 0.923,
-  "impact": 1.0,
-  "risk_score": 92.3,
-  "risk_level": "CRITICAL",
-  "risk_drivers": [
-    "Critical CVSS",
-    "High exploitation probability",
-    "Known exploited vulnerability",
-    "Internet exposed asset",
-    "Critical business asset"
-  ],
-  "calculation": {
-    "cvss_normalized": 0.98,
-    "epss": 0.82,
-    "kev_signal": 1,
-    "exposure_signal": 1,
-    "cvss_contribution": 0.245,
-    "epss_contribution": 0.328,
-    "kev_contribution": 0.2,
-    "exposure_contribution": 0.15
-  },
-  "model": {
-    "version": "risk-model-v1",
-    "type": "deterministic"
-  }
-}
-```
+### Stochastic Monte Carlo Simulation
+- `POST /monte-carlo/simulate` — Run 1,000–100,000 iterations stochastic simulation with PERT/Triangular sampling.
+- `POST /monte-carlo/from-crq` — Bridge Financial CRQ output directly into Monte Carlo simulation.
+- `GET /monte-carlo/health` — Monte Carlo module health check.
 
 ---
 
-### Endpoint 3: Calculate Risk (Technical Severity vs. Low Business Impact)
+## 6. Running Tests
 
-Demonstrates how technical severity ($0.955$ likelihood) is dampened by low business criticality ($0.25$).
-
-- **Method:** `POST`
-- **URL:** `http://localhost:8000/risk/calculate`
-- **Headers:**
-  - `Content-Type: application/json`
-- **Request Body (raw JSON):**
-```json
-{
-  "asset_id": "AST-DEV-009",
-  "cve_id": "CVE-2026-9999",
-  "cvss": 9.8,
-  "epss": 0.90,
-  "kev": true,
-  "internet_exposed": true,
-  "criticality": "Low"
-}
+### Complete Unified Test Suite (95 tests)
+```bash
+cd Backend-riskEngine
+python -m pytest tests -v
 ```
 
-#### Expected Response (`200 OK`):
-```json
-{
-  "asset_id": "AST-DEV-009",
-  "cve_id": "CVE-2026-9999",
-  "likelihood": 0.955,
-  "impact": 0.25,
-  "risk_score": 23.88,
-  "risk_level": "LOW",
-  "risk_drivers": [
-    "Critical CVSS",
-    "High exploitation probability",
-    "Known exploited vulnerability",
-    "Internet exposed asset"
-  ],
-  "calculation": {
-    "cvss_normalized": 0.98,
-    "epss": 0.9,
-    "kev_signal": 1,
-    "exposure_signal": 1,
-    "cvss_contribution": 0.245,
-    "epss_contribution": 0.36,
-    "kev_contribution": 0.2,
-    "exposure_contribution": 0.15
-  },
-  "model": {
-    "version": "risk-model-v1",
-    "type": "deterministic"
-  }
-}
+### Legacy Subpackage Test Verification
+```bash
+cd Backend-riskEngine
+python -m pytest risk/tests.py financial_crq/tests.py monte_carlo/tests.py -v
 ```
-
----
-
-### Endpoint 4: Validation Error Handling
-
-Testing rejection of invalid inputs (e.g., CVSS out of bounds or invalid criticality).
-
-- **Method:** `POST`
-- **URL:** `http://localhost:8000/risk/calculate`
-- **Headers:**
-  - `Content-Type: application/json`
-- **Request Body (raw JSON):**
-```json
-{
-  "asset_id": "AST-001",
-  "cve_id": "CVE-2026-1234",
-  "cvss": 14.5,
-  "epss": 1.25,
-  "kev": true,
-  "internet_exposed": true,
-  "criticality": "SuperUrgent"
-}
-```
-
-#### Expected Response (`422 Unprocessable Entity`):
-```json
-{
-  "detail": [
-    {
-      "type": "less_than_equal",
-      "loc": ["body", "cvss"],
-      "msg": "Input should be less than or equal to 10"
-    },
-    {
-      "type": "less_than_equal",
-      "loc": ["body", "epss"],
-      "msg": "Input should be less than or equal to 1"
-    },
-    {
-      "type": "enum",
-      "loc": ["body", "criticality"],
-      "msg": "Input should be 'Critical', 'High', 'Medium' or 'Low'"
-    }
-  ]
-}
-```
-
----
-
-## 6. Assumptions & Extensibility
-
-### Prototype Assumptions
-1. **Weight Distribution:** The weights ($0.25, 0.40, 0.20, 0.15$) represent prototype heuristic assumptions for the SIH 2026 hackathon. EPSS is weighted highest ($0.40$) to reflect real-world exploitation probability over theoretical vulnerability severity.
-2. **Impact Scale:** Business criticality maps linearly from $0.25$ (Low) to $1.00$ (Critical) to demonstrate asset-aware prioritization.
-
-### Future Extension Points
-1. **Open FAIR Integration:** The Likelihood output directly maps to Threat Event Frequency (TEF) / Vulnerability (V), and Impact can be multiplied by Expected Financial Loss ($\text{EAL} = \text{Loss Event Frequency} \times \text{Loss Magnitude}$).
-2. **Monte Carlo Simulation:** Replace fixed scalar impact with lognormal loss magnitude distributions.
-3. **Control Effectiveness:** Introduce mitigating security control factors (e.g. WAF, EDR presence) to discount Likelihood or Impact.
-4. **Dynamic Driver Rules:** In `risk/drivers.py`, additional `DriverRule` evaluators can be added (e.g., ransomware group affiliation, lateral movement hops).

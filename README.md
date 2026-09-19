@@ -68,46 +68,78 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 ## Project Structure
 
 ```
-trinetra/
-├── frontend/              # React + Tailwind dashboard
-├── backend/
-│   └── app/
-│       ├── ingestion/      # NVD / CISA KEV / EPSS pollers
-│       ├── risk_engine/    # Open FAIR-based quantification, Monte Carlo
-│       ├── optimization/   # Budget-constrained solver
-│       ├── explanation/    # LLM narrative layer
-│       └── api/
-├── docker-compose.yml
-├── docs/                   # research references, architecture notes
+TRINETRA/
+├── Backend-riskEngine/        # PRIMARY UNIFIED BACKEND APPLICATION
+│   ├── main.py                # Primary FastAPI application entrypoint
+│   ├── config.py              # Centralized environment & intelligence configuration
+│   ├── api/                   # Unified API route definitions (/vulnerabilities, /ingestion)
+│   ├── ingestion/             # Ingestion orchestration, scheduler, and telemetry tracker
+│   ├── integrations/          # External threat intelligence clients (NVD, EPSS, CISA KEV, MITRE)
+│   ├── validation/            # Strict schema bounds and CVE format validators
+│   ├── normalization/         # Threat record normalization into canonical risk engine payloads
+│   ├── cache/                 # 2-Tier memory LRU & persistent SQLite WAL cache
+│   ├── risk/                  # Risk Engine core calculation & routers (/risk)
+│   ├── financial_crq/         # Financial CRQ / Open FAIR magnitude calculation (/financial-crq)
+│   ├── monte_carlo/           # Probabilistic Monte Carlo loss simulation (/monte-carlo)
+│   ├── schemas/               # Threat intelligence & vulnerability data schemas
+│   └── tests/                 # Comprehensive test suite (95 tests)
+├── Backend-input/             # Synthetic asset data generator & standalone input schemas
+├── Backend-integration/       # Standalone ingestion reference implementation
+├── Frontend/                  # React + Tailwind dashboard
+├── Assets/                    # Architecture diagrams and design assets
 └── README.md
 ```
-*(Adjust to match your actual layout — this is the structure implied by the tech stack above.)*
 
 ## Getting Started
 
-**Prerequisites:** Node.js 18+, Python 3.11+, Docker (optional, for full-stack run)
+### Prerequisites
+- Python 3.11+ (tested on Python 3.13)
+- Node.js 18+ (for Frontend)
+
+### Running the Primary Unified Backend (`Backend-riskEngine`)
 
 ```bash
-# Clone the repo
-git clone https://github.com/<your-org>/trinetra.git
-cd trinetra
+# Navigate to Backend-riskEngine
+cd Backend-riskEngine
 
-# Backend
-cd backend
-python -m venv venv && source venv/bin/activate
+# Create and activate virtual environment (optional)
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/macOS:
+# source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env        # set DATABASE_URL, REDIS_URL, LLM_API_KEY
-uvicorn app.main:app --reload
 
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
+# Start the unified backend server
+uvicorn main:app --reload --port 8000
 ```
 
-Or run the full stack with Docker:
+The unified backend will be available at:
+- **Root Overview & Registered Endpoints:** `http://localhost:8000/`
+- **Interactive OpenAPI Documentation:** `http://localhost:8000/docs`
+- **Health Check:** `http://localhost:8000/health`
+
+### Unified API Route Groups
+
+| Module | Route Prefix | Key Endpoints | Description |
+|---|---|---|---|
+| **System** | `/` | `GET /`, `GET /health` | System metadata & multi-module health status |
+| **Threat Ingestion** | `/vulnerabilities`, `/ingestion` | `GET /vulnerabilities/{cve_id}`, `POST /vulnerabilities/asset-join`, `POST /ingestion/sync` | Threat intelligence ingestion, enrichment, caching, and asset joining |
+| **Risk Engine** | `/risk` | `POST /risk/calculate`, `GET /risk/health` | Deterministic risk score calculation (0–100) & risk tiers |
+| **Financial CRQ** | `/financial-crq` | `POST /financial-crq/calculate`, `GET /financial-crq/health` | Open FAIR financial loss magnitude & Expected Annual Loss (₹ EAL) |
+| **Monte Carlo** | `/monte-carlo` | `POST /monte-carlo/simulate`, `POST /monte-carlo/simulate-from-crq` | Probabilistic loss distributions, percentiles (P50/P90/P95/P99), and histograms |
+
+### Running Tests
+
 ```bash
-docker-compose up --build
+# Unified Backend test suite (95 tests)
+cd Backend-riskEngine
+python -m pytest tests -v
+
+# Legacy subpackage test suites
+python -m pytest risk/tests.py financial_crq/tests.py monte_carlo/tests.py -v
 ```
 
 ## Roadmap
