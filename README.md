@@ -35,7 +35,7 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 ##  System Architecture
 
 <p align="center">
-  <img src="Assets/system-architecture.png" alt="TRINETRA System Architecture" width="100%">
+  <img src="Assets/System Architecture.png" alt="TRINETRA System Architecture" width="100%">
 </p>
 
 **Component split:**
