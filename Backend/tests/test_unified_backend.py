@@ -33,6 +33,8 @@ def test_unified_root_endpoint():
         assert "Risk Engine" in data["modules"]
         assert "Financial CRQ" in data["modules"]
         assert "Monte Carlo Simulation" in data["modules"]
+        assert "Decision Intelligence" in data["modules"]
+        assert "ML Risk Calibration" in data["modules"]
         assert "Threat Intelligence Ingestion" in data["modules"]
 
         assert data["risk_model_version"] == RISK_MODEL_VERSION
@@ -47,6 +49,14 @@ def test_unified_root_endpoint():
         assert endpoints["monte_carlo_simulate"] == "/monte-carlo/simulate"
         assert endpoints["monte_carlo_from_crq"] == "/monte-carlo/from-crq"
         assert endpoints["monte_carlo_health"] == "/monte-carlo/health"
+        assert endpoints["decision_alternatives"] == "/decision/{optimization_id}/alternatives"
+        assert endpoints["decision_opportunity_cost"] == "/decision/{optimization_id}/opportunity-cost"
+        assert endpoints["decision_marginal_budget"] == "/decision/{optimization_id}/marginal-budget"
+        assert endpoints["decision_explanation"] == "/decision/{optimization_id}/explanation"
+        assert endpoints["decision_health"] == "/decision/health"
+        assert endpoints["ml_predict"] == "/ml/predict"
+        assert endpoints["ml_model_info"] == "/ml/model-info"
+        assert endpoints["ml_health"] == "/ml/health"
         assert endpoints["enriched_vulnerability"] == "/vulnerabilities/{cve_id}/enriched"
         assert endpoints["asset_join_risk_payload"] == "/vulnerabilities/risk-engine-payload"
         assert endpoints["single_cve_refresh"] == "/ingestion/vulnerability/{cve_id}/refresh"
@@ -57,7 +67,7 @@ def test_unified_root_endpoint():
 
 
 def test_all_module_health_endpoints():
-    """Verify health endpoints across all 4 integrated modules return HTTP 200."""
+    """Verify health endpoints across all integrated modules return HTTP 200."""
     with TestClient(app) as client:
         # 1. Risk Engine health
         r_resp = client.get("/risk/health")
@@ -74,7 +84,17 @@ def test_all_module_health_endpoints():
         assert m_resp.status_code == 200
         assert m_resp.json()["status"] == "ok"
 
-        # 4. Ingestion health & status
+        # 4. Decision Intelligence health
+        d_resp = client.get("/decision/health")
+        assert d_resp.status_code == 200
+        assert d_resp.json()["status"] == "ok"
+
+        # 5. ML Risk Calibration health
+        ml_resp = client.get("/ml/health")
+        assert ml_resp.status_code == 200
+        assert ml_resp.json()["status"] == "ok"
+
+        # 6. Ingestion health & status
         i_resp = client.get("/ingestion/status")
         assert i_resp.status_code == 200
         assert i_resp.json()["status"] == "ok"

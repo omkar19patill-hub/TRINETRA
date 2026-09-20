@@ -38,6 +38,10 @@ from ingestion.scheduler import IngestionScheduler
 from ingestion.service import IngestionService
 from monte_carlo.routes import router as monte_carlo_router
 from monte_carlo.simulator import MONTE_CARLO_MODEL_VERSION
+from decision import DECISION_MODEL_VERSION
+from decision.routes import router as decision_router
+from ml import ML_MODEL_VERSION
+from ml.routes import router as ml_router
 from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
 from schemas.vulnerability import (
     DataFreshness,
@@ -200,6 +204,8 @@ app.add_middleware(
 app.include_router(risk_router)
 app.include_router(financial_crq_router)
 app.include_router(monte_carlo_router)
+app.include_router(decision_router)
+app.include_router(ml_router)
 app.include_router(ingestion_router)
 
 
@@ -213,11 +219,15 @@ def root_info():
             "Risk Engine",
             "Financial CRQ",
             "Monte Carlo Simulation",
+            "Decision Intelligence",
+            "ML Risk Calibration",
         ],
         "version": "1.0.0",
         "risk_model_version": RISK_MODEL_VERSION,
         "financial_crq_model_version": FINANCIAL_MODEL_VERSION,
         "monte_carlo_model_version": MONTE_CARLO_MODEL_VERSION,
+        "decision_model_version": DECISION_MODEL_VERSION,
+        "ml_model_version": ML_MODEL_VERSION,
         "swagger_docs": "/docs",
         "redoc_docs": "/redoc",
         "endpoints": {
@@ -228,6 +238,14 @@ def root_info():
             "monte_carlo_simulate": "/monte-carlo/simulate",
             "monte_carlo_from_crq": "/monte-carlo/from-crq",
             "monte_carlo_health": "/monte-carlo/health",
+            "decision_alternatives": "/decision/{optimization_id}/alternatives",
+            "decision_opportunity_cost": "/decision/{optimization_id}/opportunity-cost",
+            "decision_marginal_budget": "/decision/{optimization_id}/marginal-budget",
+            "decision_explanation": "/decision/{optimization_id}/explanation",
+            "decision_health": "/decision/health",
+            "ml_predict": "/ml/predict",
+            "ml_model_info": "/ml/model-info",
+            "ml_health": "/ml/health",
             "enriched_vulnerability": "/vulnerabilities/{cve_id}/enriched",
             "asset_join_risk_payload": "/vulnerabilities/risk-engine-payload",
             "single_cve_refresh": "/ingestion/vulnerability/{cve_id}/refresh",
