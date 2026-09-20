@@ -35,6 +35,7 @@ def test_unified_root_endpoint():
         assert "Monte Carlo Simulation" in data["modules"]
         assert "Decision Intelligence" in data["modules"]
         assert "ML Risk Calibration" in data["modules"]
+        assert "Explainable AI" in data["modules"]
         assert "Threat Intelligence Ingestion" in data["modules"]
 
         assert data["risk_model_version"] == RISK_MODEL_VERSION
@@ -57,6 +58,11 @@ def test_unified_root_endpoint():
         assert endpoints["ml_predict"] == "/ml/predict"
         assert endpoints["ml_model_info"] == "/ml/model-info"
         assert endpoints["ml_health"] == "/ml/health"
+        assert endpoints["ai_explain_risk"] == "/ai/explain-risk"
+        assert endpoints["ai_explain_optimization"] == "/ai/explain-optimization"
+        assert endpoints["ai_explain_scenario"] == "/ai/explain-scenario"
+        assert endpoints["ai_query"] == "/ai/query"
+        assert endpoints["ai_health"] == "/ai/health"
         assert endpoints["enriched_vulnerability"] == "/vulnerabilities/{cve_id}/enriched"
         assert endpoints["asset_join_risk_payload"] == "/vulnerabilities/risk-engine-payload"
         assert endpoints["single_cve_refresh"] == "/ingestion/vulnerability/{cve_id}/refresh"
@@ -94,7 +100,12 @@ def test_all_module_health_endpoints():
         assert ml_resp.status_code == 200
         assert ml_resp.json()["status"] == "ok"
 
-        # 6. Ingestion health & status
+        # 6. Explainable AI health
+        ai_resp = client.get("/ai/health")
+        assert ai_resp.status_code == 200
+        assert ai_resp.json()["status"] == "ok"
+
+        # 7. Ingestion health & status
         i_resp = client.get("/ingestion/status")
         assert i_resp.status_code == 200
         assert i_resp.json()["status"] == "ok"

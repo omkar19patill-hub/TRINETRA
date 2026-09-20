@@ -42,6 +42,8 @@ from decision import DECISION_MODEL_VERSION
 from decision.routes import router as decision_router
 from ml import ML_MODEL_VERSION
 from ml.routes import router as ml_router
+from ai import AI_EXPLAIN_VERSION
+from ai.routes import router as ai_router
 from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
 from schemas.vulnerability import (
     DataFreshness,
@@ -206,6 +208,7 @@ app.include_router(financial_crq_router)
 app.include_router(monte_carlo_router)
 app.include_router(decision_router)
 app.include_router(ml_router)
+app.include_router(ai_router)
 app.include_router(ingestion_router)
 
 
@@ -221,6 +224,7 @@ def root_info():
             "Monte Carlo Simulation",
             "Decision Intelligence",
             "ML Risk Calibration",
+            "Explainable AI",
         ],
         "version": "1.0.0",
         "risk_model_version": RISK_MODEL_VERSION,
@@ -228,6 +232,7 @@ def root_info():
         "monte_carlo_model_version": MONTE_CARLO_MODEL_VERSION,
         "decision_model_version": DECISION_MODEL_VERSION,
         "ml_model_version": ML_MODEL_VERSION,
+        "ai_explain_model_version": AI_EXPLAIN_VERSION,
         "swagger_docs": "/docs",
         "redoc_docs": "/redoc",
         "endpoints": {
@@ -246,6 +251,11 @@ def root_info():
             "ml_predict": "/ml/predict",
             "ml_model_info": "/ml/model-info",
             "ml_health": "/ml/health",
+            "ai_explain_risk": "/ai/explain-risk",
+            "ai_explain_optimization": "/ai/explain-optimization",
+            "ai_explain_scenario": "/ai/explain-scenario",
+            "ai_query": "/ai/query",
+            "ai_health": "/ai/health",
             "enriched_vulnerability": "/vulnerabilities/{cve_id}/enriched",
             "asset_join_risk_payload": "/vulnerabilities/risk-engine-payload",
             "single_cve_refresh": "/ingestion/vulnerability/{cve_id}/refresh",
