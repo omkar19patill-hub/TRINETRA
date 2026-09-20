@@ -44,6 +44,10 @@ from ml import ML_MODEL_VERSION
 from ml.routes import router as ml_router
 from ai import AI_EXPLAIN_VERSION
 from ai.routes import router as ai_router
+from blockchain import BLOCKCHAIN_MODEL_VERSION
+from blockchain.routes import router as blockchain_router
+from orchestration import ORCHESTRATION_MODEL_VERSION
+from orchestration.routes import router as orchestration_router
 from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
 from schemas.vulnerability import (
     DataFreshness,
@@ -209,6 +213,8 @@ app.include_router(monte_carlo_router)
 app.include_router(decision_router)
 app.include_router(ml_router)
 app.include_router(ai_router)
+app.include_router(blockchain_router)
+app.include_router(orchestration_router)
 app.include_router(ingestion_router)
 
 
@@ -225,6 +231,8 @@ def root_info():
             "Decision Intelligence",
             "ML Risk Calibration",
             "Explainable AI",
+            "Blockchain Decision Provenance",
+            "Continuous Re-Optimization",
         ],
         "version": "1.0.0",
         "risk_model_version": RISK_MODEL_VERSION,
@@ -233,6 +241,8 @@ def root_info():
         "decision_model_version": DECISION_MODEL_VERSION,
         "ml_model_version": ML_MODEL_VERSION,
         "ai_explain_model_version": AI_EXPLAIN_VERSION,
+        "blockchain_model_version": BLOCKCHAIN_MODEL_VERSION,
+        "orchestration_model_version": ORCHESTRATION_MODEL_VERSION,
         "swagger_docs": "/docs",
         "redoc_docs": "/redoc",
         "endpoints": {
@@ -248,6 +258,14 @@ def root_info():
             "decision_marginal_budget": "/decision/{optimization_id}/marginal-budget",
             "decision_explanation": "/decision/{optimization_id}/explanation",
             "decision_health": "/decision/health",
+            "blockchain_record": "/blockchain/record",
+            "blockchain_verify": "/blockchain/verify/{assessment_id}",
+            "blockchain_health": "/blockchain/health",
+            "blockchain_tester": "/blockchain/tester",
+            "reoptimize": "/reoptimize",
+            "recalculate_asset": "/recalculate/{asset_id}",
+            "orchestration_health": "/orchestration/health",
+            "orchestration_assets": "/orchestration/assets",
             "ml_predict": "/ml/predict",
             "ml_model_info": "/ml/model-info",
             "ml_health": "/ml/health",
