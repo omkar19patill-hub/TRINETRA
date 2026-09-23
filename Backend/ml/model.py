@@ -35,10 +35,30 @@ _LOCK = threading.Lock()
 class RiskCalibrationModel:
     """Logistic Regression Risk Calibration Model with exact log-odds explainability."""
 
-    def __init__(self, model_path: Optional[Path] = None):
+    def __init__(
+        self,
+        model_path: Optional[Path] = None,
+        dataset_path: Optional[Path] = None,
+    ):
         self.model_path = model_path or MODEL_PATH
+        self.dataset_path = dataset_path
         self.artifact: Optional[Dict[str, Any]] = None
         self._load_or_train()
+
+    def _resolve_dataset_path(self) -> Optional[Path]:
+        """Determine where fallback training should write its dataset.
+
+        Returns None when the default repository dataset path is appropriate, so
+        train_and_save_model() applies its own default. When an explicit dataset
+        path was supplied it is used as-is. When only a custom model path was
+        supplied, the dataset is written alongside it so that a caller pointing at
+        a temporary directory never writes into the repository.
+        """
+        if self.dataset_path is not None:
+            return self.dataset_path
+        if self.model_path == MODEL_PATH:
+            return None
+        return self.model_path.parent / "ml_training.csv"
 
     def _load_or_train(self) -> None:
         """Load the pre-trained artifact or trigger fallback in-memory training."""
@@ -49,9 +69,14 @@ class RiskCalibrationModel:
                     return
                 except Exception:
                     pass
-            # Fallback self-training if artifact is missing or invalid
+            # Fallback self-training if artifact is missing or invalid.
+            # Paths are passed explicitly so training writes only where this
+            # instance points, never unconditionally into the repository.
             from .train import train_and_save_model
-            self.artifact = train_and_save_model()
+            self.artifact = train_and_save_model(
+                model_path=self.model_path,
+                dataset_path=self._resolve_dataset_path(),
+            )
 
     @property
     def is_loaded(self) -> bool:

@@ -10,6 +10,7 @@ an explainable Logistic Regression classifier saved to ml/model.joblib.
 
 import math
 from pathlib import Path
+from typing import Optional
 import joblib
 import numpy as np
 import pandas as pd
@@ -148,13 +149,28 @@ def generate_synthetic_dataset(n_samples: int = 1200, seed: int = 42) -> pd.Data
     return df
 
 
-def train_and_save_model() -> dict:
-    """Train the Logistic Regression model and serialize artifact."""
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+def train_and_save_model(
+    model_path: Optional[Path] = None,
+    dataset_path: Optional[Path] = None,
+) -> dict:
+    """Train the Logistic Regression model and serialize artifact.
+
+    Args:
+        model_path: Destination for the serialized artifact. Defaults to MODEL_PATH.
+        dataset_path: Destination for the generated training CSV. Defaults to DATASET_PATH.
+
+    Both default to the module-level repository paths, so normal application usage
+    is unchanged. Callers that pass explicit paths (e.g. tests using a temporary
+    directory) write only to those paths and never touch the repository copies.
+    """
+    target_model_path = Path(model_path) if model_path is not None else MODEL_PATH
+    target_dataset_path = Path(dataset_path) if dataset_path is not None else DATASET_PATH
+
+    target_dataset_path.parent.mkdir(parents=True, exist_ok=True)
+    target_model_path.parent.mkdir(parents=True, exist_ok=True)
 
     df = generate_synthetic_dataset(n_samples=1200, seed=42)
-    df.to_csv(DATASET_PATH, index=False)
+    df.to_csv(target_dataset_path, index=False)
 
     features = [
         "cvss",
@@ -211,7 +227,7 @@ def train_and_save_model() -> dict:
         "metrics": {"accuracy": round(acc, 4), "roc_auc": round(auc, 4)},
     }
 
-    joblib.dump(artifact, MODEL_PATH)
+    joblib.dump(artifact, target_model_path)
 
     return artifact
 

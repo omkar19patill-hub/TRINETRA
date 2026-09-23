@@ -14,6 +14,7 @@ Tests:
 7. Auxiliary signal integrity & governance compliance
 """
 
+import hashlib
 import sys
 from pathlib import Path
 import pytest
@@ -188,6 +189,74 @@ def test_missing_model_file_fallback(tmp_path):
     result = model.predict(req)
     assert 0.0 <= result.ml_risk_probability <= 1.0
     assert result.predicted_class in {0, 1}
+
+
+def _sha256(path: Path) -> str:
+    """Return the SHA-256 digest of a file's contents."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_fallback_training_does_not_touch_repository_artifacts(tmp_path):
+    """Fallback self-training must write only to the injected paths.
+
+    Regression test: train_and_save_model() previously wrote to hardcoded module
+    paths, so constructing a model against a temporary directory silently
+    overwrote the tracked ml/model.joblib and data/ml_training.csv.
+    """
+    from ml.train import DATASET_PATH, MODEL_PATH
+
+    tracked_model_before = _sha256(MODEL_PATH)
+    tracked_dataset_before = _sha256(DATASET_PATH)
+
+    temp_model = tmp_path / "model.joblib"
+    temp_dataset = tmp_path / "ml_training.csv"
+    assert not temp_model.exists()
+    assert not temp_dataset.exists()
+
+    model = RiskCalibrationModel(model_path=temp_model)
+    assert model.is_loaded
+
+    # Training wrote both artifacts inside the temporary directory
+    assert temp_model.exists(), "artifact was not written to the injected model path"
+    assert temp_dataset.exists(), "dataset was not written beside the injected model path"
+
+    # The tracked repository copies are untouched
+    assert _sha256(MODEL_PATH) == tracked_model_before, "tracked model.joblib was modified"
+    assert _sha256(DATASET_PATH) == tracked_dataset_before, "tracked ml_training.csv was modified"
+
+
+def test_fallback_training_accepts_explicit_dataset_path(tmp_path):
+    """An explicitly supplied dataset path is honoured over the derived default."""
+    from ml.train import DATASET_PATH, MODEL_PATH
+
+    tracked_model_before = _sha256(MODEL_PATH)
+    tracked_dataset_before = _sha256(DATASET_PATH)
+
+    temp_model = tmp_path / "artifact" / "model.joblib"
+    temp_dataset = tmp_path / "dataset" / "training.csv"
+
+    model = RiskCalibrationModel(model_path=temp_model, dataset_path=temp_dataset)
+    assert model.is_loaded
+
+    assert temp_model.exists()
+    assert temp_dataset.exists(), "explicit dataset_path was not used"
+
+    assert _sha256(MODEL_PATH) == tracked_model_before
+    assert _sha256(DATASET_PATH) == tracked_dataset_before
+
+
+def test_default_paths_still_resolve_to_repository_artifacts():
+    """Default construction must keep using the repository artifact (no behaviour change)."""
+    from ml.model import MODEL_PATH as MODEL_MODULE_PATH
+    from ml.train import DATASET_PATH, MODEL_PATH
+
+    model = RiskCalibrationModel()
+    assert model.model_path == MODEL_MODULE_PATH
+    assert model.model_path == MODEL_PATH
+    # No explicit dataset path means train.py applies its own default
+    assert model.dataset_path is None
+    assert model._resolve_dataset_path() is None
+    assert DATASET_PATH.exists()
 
 
 def test_unified_root_endpoint_includes_ml():

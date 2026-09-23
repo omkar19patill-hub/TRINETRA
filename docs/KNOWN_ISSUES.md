@@ -8,7 +8,8 @@ tracked separately — this file is documentation only.
 
 ## 1. Test suite silently overwrites tracked model artifact and training data
 
-**Status:** Open — not fixed.
+**Status:** RESOLVED. See "Resolution" below. The description that follows records
+the original defect for historical context.
 
 ### Bug
 
@@ -45,10 +46,41 @@ bytes). A committed, reviewed model artifact can therefore be replaced by an
 incidental retrain with no warning, and the change is easy to commit by
 accident.
 
-### Safe workaround
+### Resolution
 
-Until this is fixed, do not run the backend test suite directly against the real
-working tree. Run it against an isolated export instead, for example:
+Fixed by making the training entry point accept its output locations instead of
+always writing to module-level constants.
+
+- `Backend/ml/train.py` — `train_and_save_model()` now takes optional
+  `model_path` and `dataset_path` parameters. Both default to the existing
+  `MODEL_PATH` / `DATASET_PATH` constants, so normal application behaviour is
+  unchanged. The `to_csv` and `joblib.dump` calls write to the resolved targets.
+- `Backend/ml/model.py` — `RiskCalibrationModel` accepts an optional
+  `dataset_path`, and `_load_or_train()` now passes both paths into
+  `train_and_save_model()`. When only a custom `model_path` is supplied, the
+  dataset is written alongside it (`_resolve_dataset_path()`), so a caller
+  pointing at a temporary directory never writes into the repository. When the
+  defaults are in use, `None` is passed and `train.py` applies its own defaults.
+
+Three regression tests were added in `Backend/tests/test_ml_component.py`:
+
+- `test_fallback_training_does_not_touch_repository_artifacts` — asserts the
+  injected temp paths receive both artifacts and that the SHA-256 of the tracked
+  `ml/model.joblib` and `data/ml_training.csv` are unchanged.
+- `test_fallback_training_accepts_explicit_dataset_path` — asserts an explicit
+  `dataset_path` is honoured.
+- `test_default_paths_still_resolve_to_repository_artifacts` — asserts default
+  construction still resolves to the repository artifact (no behaviour change).
+
+All three fail against the pre-fix code and pass after it. Verified by running
+the full suite directly inside `Backend/` (178 passed) and confirming both
+tracked files were byte-identical before and after, with a clean `git status`.
+
+### Safe workaround (no longer required)
+
+Retained for reference. Before the fix, the rule was: do not run the backend test
+suite directly against the real working tree; run it against an isolated export
+instead, for example:
 
     git archive HEAD | tar -x -C <isolated-dir>
     cd <isolated-dir>/Backend && python -m pytest tests/ -q
@@ -76,6 +108,6 @@ and restore any incidental changes with
 
 ### Scope note
 
-This is a pre-existing defect, not introduced by recent changes. Fixing it
-would mean threading the target paths through `train_and_save_model()` — a
-production-code change that should be reviewed on its own.
+This was a pre-existing defect, not introduced by recent changes. It has since
+been fixed by threading the target paths through `train_and_save_model()`, as
+described under "Resolution".
