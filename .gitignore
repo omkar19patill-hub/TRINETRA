@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -239,3 +239,6 @@ venv/
 
 # macOS
 .DS_Store
+
+# Node / frontend dependencies (root-level backstop)
+node_modules/
