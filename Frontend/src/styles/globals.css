@@ -1,0 +1,84 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: dark; }
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #000000;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(51,85,255,0.35); color: #fafafa; }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .fade-mask-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  .beam-line {
+    stroke-dasharray: 6 10;
+    animation: dash-flow 18s linear infinite;
+  }
+
+  .pulse-dot { animation: packet-pulse 2.4s ease-in-out infinite; }
+  
+  .animate-gradient-x {
+    background-size: 200% auto;
+    animation: gradient-x 6s ease infinite;
+  }
+
+  .risk-severity-critical { color: #ef4444; }
+  .risk-severity-high { color: #f97316; }
+  .risk-severity-medium { color: #eab308; }
+  .risk-severity-low { color: #22c55e; }
+
+  .card-shell {
+    background: #050505;
+    border: 1px solid #262626;
+  }
+}
+
+@layer components {
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #7c93ff;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  .conic-border {
+    position: absolute; inset: -1px; border-radius: inherit;
+    background: conic-gradient(from 0deg, transparent 0%, #7c93ff 12%, transparent 24%);
+    animation: spin 3.2s linear infinite;
+    opacity: 0; transition: opacity .25s ease;
+  }
+  .conic-btn:hover .conic-border { opacity: 1; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

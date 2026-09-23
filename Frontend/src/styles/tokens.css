@@ -1,0 +1,26 @@
+:root {
+  /* Surfaces */
+  --surface-base: #000000;
+  --surface-muted: #050505;
+  --surface-strong: #171717;
+  --surface-raised: #262626;
+
+  /* Text */
+  --text-primary: #a6a6a6;
+  --text-secondary: #fafafa;
+  --text-tertiary: #ffffff;
+  --text-inverse: #737373;
+
+  /* Border */
+  --border-default: #333333;
+
+  /* Accent */
+  --accent-primary: #3355FF;
+  --accent-soft: #7C93FF;
+
+  /* Risk / Severity */
+  --risk-critical: #EF4444;
+  --risk-high: #F97316;
+  --risk-medium: #EAB308;
+  --risk-low: #22C55E;
+}

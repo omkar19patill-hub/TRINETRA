@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trinetra — See Risk Before It Strikes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+        colors: {
+          base: '#000000',
+          muted: '#050505',
+          strong: '#171717',
+          raised: '#262626',
+          bd: '#333333',
+          t1: '#a6a6a6',
+          t2: '#fafafa',
+          t3: '#ffffff',
+          accent: '#3355ff',
+          'accent-2': '#7c93ff',
+          crit: '#ef4444',
+          high: '#f97316',
+          med: '#eab308',
+          low: '#22c55e',
+        },
+        borderRadius: { xs: '4px', sm: '6px', md: '12px', lg: '16px' },
+      }
+    }
+  }
+</script>
+<style>
+  :root { color-scheme: dark; }
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #000000;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(51,85,255,0.35); color: #fafafa; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #7c93ff;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .fade-mask-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .animate-float { animation: float 6s ease-in-out infinite; }
+
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -1000; }
+  }
+  .beam-line {
+    stroke-dasharray: 6 10;
+    animation: dash-flow 18s linear infinite;
+  }
+
+  @keyframes packet-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  .pulse-dot { animation: packet-pulse 2.4s ease-in-out infinite; }
+
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .animate-gradient-x {
+    background-size: 200% auto;
+    animation: gradient-x 6s ease infinite;
+  }
+
+  .conic-border {
+    position: absolute; inset: -1px; border-radius: inherit;
+    background: conic-gradient(from 0deg, transparent 0%, #7c93ff 12%, transparent 24%);
+    animation: spin 3.2s linear infinite;
+    opacity: 0; transition: opacity .25s ease;
+  }
+  .conic-btn:hover .conic-border { opacity: 1; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .risk-severity-critical { color: #ef4444; }
+  .risk-severity-high { color: #f97316; }
+  .risk-severity-medium { color: #eab308; }
+  .risk-severity-low { color: #22c55e; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  .card-shell {
+    background: #050505;
+    border: 1px solid #262626;
+  }
+</style>
+</head>
+<body class="bg-black text-t2 antialiased">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-sm">Skip to content</a>
+
+<!-- ===================== NAVBAR ===================== -->
+<header class="fixed top-0 inset-x-0 z-50">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6 pt-4">
+    <div class="flex items-center justify-between rounded-xl border border-bd/70 bg-black/60 backdrop-blur-xl px-4 py-2.5">
+      <a href="#top" class="flex items-center gap-2.5 shrink-0">
+        <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="48" fill="#000"/>
+          <g fill="none" stroke="#e5e5e5" stroke-width="3">
+            <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z"/>
+            <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z" transform="rotate(120 50 50)"/>
+            <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z" transform="rotate(240 50 50)"/>
+          </g>
+          <circle cx="50" cy="50" r="6" fill="#3355ff"/>
+        </svg>
+        <span class="font-semibold tracking-tight text-t3 text-[15px]">TRINETRA</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1 rounded-full bg-gradient-to-br from-white/[0.06] to-transparent border border-white/[0.06] px-1.5 py-1.5 absolute left-1/2 -translate-x-1/2">
+        <a href="#problem" class="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Problem</a>
+        <a href="#how-it-works" class="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">How it works</a>
+        <a href="#intelligence" class="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Intelligence</a>
+        <a href="#platform" class="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Platform</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <a href="#platform" class="hidden sm:inline-flex items-center text-[13px] font-medium text-black bg-t3 hover:bg-t2 px-4 py-2 rounded-sm transition-colors">
+          Explore the platform
+        </a>
+        <button id="navToggle" aria-label="Open menu" aria-expanded="false" class="md:hidden p-2 text-t2">
+          <svg id="iconMenu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="iconClose" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobileMenu" class="hidden md:hidden mt-2 rounded-xl border border-bd/70 bg-black/95 backdrop-blur-xl p-3 flex flex-col gap-1">
+      <a href="#problem" class="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Problem</a>
+      <a href="#how-it-works" class="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">How it works</a>
+      <a href="#intelligence" class="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Intelligence</a>
+      <a href="#platform" class="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Platform</a>
+      <a href="#platform" class="mt-1 text-center text-sm font-medium text-black bg-t3 px-4 py-2.5 rounded-sm">Explore the platform</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ===================== HERO ===================== -->
+<section id="top" class="relative overflow-hidden bg-grid">
+  <div class="absolute inset-0 fade-mask-b bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none"></div>
+  <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-accent/10 blur-[120px] pointer-events-none"></div>
+
+  <div class="relative max-w-[1320px] mx-auto px-4 sm:px-6 pt-36 pb-20 md:pt-44 md:pb-28">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+
+      <!-- Left: copy -->
+      <div>
+        <div class="inline-flex items-center gap-2 text-[12px] text-t1 border border-bd rounded-full px-3 py-1 mb-7">
+          <span class="w-1.5 h-1.5 rounded-full bg-low pulse-dot"></span>
+          SIH26105 &middot; Continuous Cyber Risk Quantification
+        </div>
+
+        <h1 class="text-[42px] sm:text-[54px] lg:text-[60px] font-semibold text-t3 leading-[1.02] tracking-tight">
+          See risk before<br/>it strikes.
+        </h1>
+
+        <p class="mt-6 text-[17px] leading-relaxed text-t1 max-w-[480px]">
+          Trinetra turns raw vulnerability data into a live, rupee-denominated risk number —
+          and tells you exactly where the next rupee of security budget should go.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-3">
+          <a href="#platform" class="conic-btn relative inline-flex items-center justify-center rounded-sm bg-t3 text-black text-[14px] font-medium px-6 py-3">
+            <span class="conic-border"></span>
+            <span class="relative z-10">Explore the platform</span>
+          </a>
+          <a href="#how-it-works" class="inline-flex items-center gap-1.5 text-[14px] font-medium text-t2 border border-bd hover:border-t1 px-6 py-3 rounded-sm transition-colors">
+            How it works
+          </a>
+        </div>
+
+        <p class="mt-8 text-[12px] text-t1">
+          Built on NVD &middot; CISA KEV &middot; EPSS &middot; MITRE ATT&amp;CK — refreshed continuously, not once a year.
+        </p>
+      </div>
+
+      <!-- Right: pipeline visualization -->
+      <div class="relative hidden lg:block" aria-hidden="true">
+        <svg viewBox="0 0 560 520" class="w-full h-auto overflow-visible">
+          <path id="pipePath" d="M 40 60 C 200 60, 160 180, 300 200 C 440 220, 380 340, 500 380"
+                fill="none" stroke="#262626" stroke-width="2"/>
+          <path d="M 40 60 C 200 60, 160 180, 300 200 C 440 220, 380 340, 500 380"
+                fill="none" stroke="#3355ff" stroke-width="2" class="beam-line" opacity="0.6"/>
+
+          <circle r="5" fill="#7c93ff">
+            <animateMotion dur="5s" repeatCount="indefinite"
+              path="M 40 60 C 200 60, 160 180, 300 200 C 440 220, 380 340, 500 380"/>
+          </circle>
+
+          <!-- Node 1: CVE input -->
+          <g transform="translate(0,30)">
+            <rect x="4" y="4" width="150" height="64" rx="10" fill="#050505" stroke="#333333"/>
+            <text x="20" y="28" fill="#a6a6a6" font-size="10" font-family="Inter">CVE-2026-1234</text>
+            <text x="20" y="46" fill="#fafafa" font-size="13" font-family="Inter" font-weight="600">Critical &middot; KEV listed</text>
+          </g>
+
+          <!-- Node 2: Risk score -->
+          <g transform="translate(220,150)">
+            <g class="animate-float" style="animation-delay:.2s">
+              <rect x="4" y="4" width="150" height="64" rx="10" fill="#050505" stroke="#333333"/>
+              <text x="20" y="28" fill="#a6a6a6" font-size="10" font-family="Inter">Risk Score</text>
+              <text x="20" y="48" fill="#fafafa" font-size="18" font-family="Inter" font-weight="700">89.5<tspan fill="#ef4444" font-size="11" dx="6">CRITICAL</tspan></text>
+            </g>
+          </g>
+
+          <!-- Node 3: Financial exposure -->
+          <g transform="translate(360,330)">
+            <g class="animate-float" style="animation-delay:.5s">
+              <rect x="4" y="4" width="180" height="72" rx="10" fill="#050505" stroke="#3355ff"/>
+              <text x="20" y="26" fill="#a6a6a6" font-size="10" font-family="Inter">Estimated Financial Exposure</text>
+              <text x="20" y="52" fill="#7c93ff" font-size="20" font-family="Inter" font-weight="700">&#8377;3.3L / yr</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROBLEM ===================== -->
+<section id="problem" class="relative border-t border-bd/60 py-24 md:py-32">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6">
+    <div class="max-w-[620px]">
+      <h2 class="text-[30px] sm:text-[36px] font-semibold text-t3 tracking-tight leading-tight">
+        Thousands of vulnerabilities. One patch cycle. No way to know which ones matter.
+      </h2>
+      <p class="mt-4 text-[16px] text-t1 leading-relaxed">
+        CVSS tells you how severe a flaw is — not how likely it is to be exploited, which
+        asset it threatens, or what it would actually cost. Most risk assessments are a
+        once-a-year PDF, disconnected from the language a board actually spends money in.
+      </p>
+    </div>
+
+    <div class="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="card-shell rounded-md p-5">
+        <div class="text-[26px] font-semibold text-t3 tabular-nums">29,44,248</div>
+        <div class="mt-2 text-[13px] text-t1 leading-snug">Cyber incidents in India, 2025 — up from 20,41,360 in 2024</div>
+        <div class="mt-3 text-[11px] text-t1/70">CERT-In, Govt. of India</div>
+      </div>
+      <div class="card-shell rounded-md p-5">
+        <div class="text-[26px] font-semibold text-t3 tabular-nums">31%</div>
+        <div class="mt-2 text-[13px] text-t1 leading-snug">Of breaches began with an exploited software vulnerability</div>
+        <div class="mt-3 text-[11px] text-t1/70">Verizon 2026 DBIR</div>
+      </div>
+      <div class="card-shell rounded-md p-5">
+        <div class="text-[26px] font-semibold text-t3 tabular-nums">263%</div>
+        <div class="mt-2 text-[13px] text-t1 leading-snug">Growth in CVE submissions between 2020 and 2025</div>
+        <div class="mt-3 text-[11px] text-t1/70">NIST</div>
+      </div>
+      <div class="card-shell rounded-md p-5">
+        <div class="text-[26px] font-semibold text-t3 tabular-nums">&#8377;22 Cr</div>
+        <div class="mt-2 text-[13px] text-t1 leading-snug">Average cost of a data breach in India, 2025</div>
+        <div class="mt-3 text-[11px] text-t1/70">IBM Cost of a Data Breach</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOW IT WORKS ===================== -->
+<section id="how-it-works" class="relative border-t border-bd/60 py-24 md:py-32">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6">
+    <div class="max-w-[560px]">
+      <h2 class="text-[30px] sm:text-[36px] font-semibold text-t3 tracking-tight leading-tight">
+        Every stage narrows raw threat data down to one decision.
+      </h2>
+      <p class="mt-4 text-[16px] text-t1 leading-relaxed">
+        Where should the next rupee of security budget go — and can you defend that answer
+        in front of a board.
+      </p>
+    </div>
+
+    <div class="mt-16 grid md:grid-cols-5 gap-px bg-bd/60 rounded-md overflow-hidden border border-bd/60">
+      <div class="bg-black p-6 flex flex-col gap-3">
+        <span class="text-[11px] text-t1">01</span>
+        <h3 class="text-[15px] font-medium text-t3">Threat Intelligence</h3>
+        <p class="text-[13px] text-t1 leading-relaxed">Live CVE, EPSS and KEV data mapped to your actual assets.</p>
+      </div>
+      <div class="bg-black p-6 flex flex-col gap-3">
+        <span class="text-[11px] text-t1">02</span>
+        <h3 class="text-[15px] font-medium text-t3">Risk Analysis</h3>
+        <p class="text-[13px] text-t1 leading-relaxed">Likelihood and business impact combined into one score.</p>
+      </div>
+      <div class="bg-black p-6 flex flex-col gap-3">
+        <span class="text-[11px] text-t1">03</span>
+        <h3 class="text-[15px] font-medium text-t3">Financial Risk</h3>
+        <p class="text-[13px] text-t1 leading-relaxed">Converted into an estimated &#8377; exposure range — not a single guess.</p>
+      </div>
+      <div class="bg-black p-6 flex flex-col gap-3">
+        <span class="text-[11px] text-t1">04</span>
+        <h3 class="text-[15px] font-medium text-t3">Investment Optimization</h3>
+        <p class="text-[13px] text-t1 leading-relaxed">A fixed budget, allocated for maximum risk reduction.</p>
+      </div>
+      <div class="bg-black p-6 flex flex-col gap-3">
+        <span class="text-[11px] text-t1">05</span>
+        <h3 class="text-[15px] font-medium text-t3">Security Action</h3>
+        <p class="text-[13px] text-t1 leading-relaxed">Fix, mitigate, accept, or transfer — with the reasoning attached.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== THREAT INTELLIGENCE SOURCES ===================== -->
+<section id="intelligence" class="relative border-t border-bd/60 py-24 md:py-32 overflow-hidden">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+      <div>
+        <h2 class="text-[30px] sm:text-[36px] font-semibold text-t3 tracking-tight leading-tight">
+          Built on the sources security teams already trust.
+        </h2>
+        <p class="mt-4 text-[16px] text-t1 leading-relaxed max-w-[440px]">
+          No proprietary black box. Every risk score traces back to public, verifiable
+          threat intelligence — refreshed on a schedule, not a calendar year.
+        </p>
+        <dl class="mt-8 space-y-5">
+          <div class="flex gap-3">
+            <dt class="text-t3 font-medium text-[14px] w-16 shrink-0">NVD</dt>
+            <dd class="text-t1 text-[13px]">Vulnerability data, CVSS severity, affected products.</dd>
+          </div>
+          <div class="flex gap-3">
+            <dt class="text-t3 font-medium text-[14px] w-16 shrink-0">CISA KEV</dt>
+            <dd class="text-t1 text-[13px]">Confirmed, real-world exploitation signal.</dd>
+          </div>
+          <div class="flex gap-3">
+            <dt class="text-t3 font-medium text-[14px] w-16 shrink-0">EPSS</dt>
+            <dd class="text-t1 text-[13px]">Probability of exploitation in the next 30 days.</dd>
+          </div>
+          <div class="flex gap-3">
+            <dt class="text-t3 font-medium text-[14px] w-16 shrink-0">ATT&amp;CK</dt>
+            <dd class="text-t1 text-[13px]">Adversary tactics and techniques, for context.</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="relative aspect-square max-w-[440px] mx-auto" aria-hidden="true">
+        <svg viewBox="0 0 400 400" class="w-full h-full">
+          <g stroke="#262626" stroke-width="1.5" fill="none">
+            <path d="M60 60 L200 200" class="beam-line" stroke="#3355ff" opacity="0.5"/>
+            <path d="M340 60 L200 200" class="beam-line" stroke="#3355ff" opacity="0.5" style="animation-delay:-4s"/>
+            <path d="M60 340 L200 200" class="beam-line" stroke="#3355ff" opacity="0.5" style="animation-delay:-9s"/>
+            <path d="M340 340 L200 200" class="beam-line" stroke="#3355ff" opacity="0.5" style="animation-delay:-13s"/>
+          </g>
+          <circle cx="200" cy="200" r="46" fill="#050505" stroke="#3355ff" stroke-width="1.5"/>
+          <text x="200" y="196" text-anchor="middle" fill="#fafafa" font-size="11" font-family="Inter" font-weight="600">Risk</text>
+          <text x="200" y="211" text-anchor="middle" fill="#fafafa" font-size="11" font-family="Inter" font-weight="600">Engine</text>
+
+          <g class="animate-float">
+            <rect x="20" y="30" width="80" height="36" rx="8" fill="#050505" stroke="#333333"/>
+            <text x="60" y="53" text-anchor="middle" fill="#a6a6a6" font-size="11" font-family="Inter">NVD</text>
+          </g>
+          <g class="animate-float" style="animation-delay:.3s">
+            <rect x="300" y="30" width="80" height="36" rx="8" fill="#050505" stroke="#333333"/>
+            <text x="340" y="53" text-anchor="middle" fill="#a6a6a6" font-size="11" font-family="Inter">CISA KEV</text>
+          </g>
+          <g class="animate-float" style="animation-delay:.6s">
+            <rect x="20" y="330" width="80" height="36" rx="8" fill="#050505" stroke="#333333"/>
+            <text x="60" y="353" text-anchor="middle" fill="#a6a6a6" font-size="11" font-family="Inter">EPSS</text>
+          </g>
+          <g class="animate-float" style="animation-delay:.9s">
+            <rect x="300" y="330" width="80" height="36" rx="8" fill="#050505" stroke="#333333"/>
+            <text x="340" y="353" text-anchor="middle" fill="#a6a6a6" font-size="10.5" font-family="Inter">ATT&amp;CK</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PRODUCT PREVIEW / SIMULATION ===================== -->
+<section id="platform" class="relative border-t border-bd/60 py-24 md:py-32">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6">
+    <div class="max-w-[600px] mx-auto text-center">
+      <h2 class="text-[30px] sm:text-[36px] font-semibold text-t3 tracking-tight leading-tight">
+        Move the budget. Watch the risk number change.
+      </h2>
+      <p class="mt-4 text-[16px] text-t1 leading-relaxed">
+        A live look at the dashboard — try the budget slider below.
+      </p>
+    </div>
+
+    <div class="mt-14 max-w-[880px] mx-auto rounded-lg border border-bd bg-[#030303] overflow-hidden">
+      <div class="flex items-center gap-2 px-5 py-3.5 border-b border-bd/70">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#333]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#333]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#333]"></span>
+        <span class="ml-3 text-[11px] text-t1">trinetra.app/dashboard/investments &middot; demo data</span>
+      </div>
+
+      <div class="p-6 sm:p-8 grid sm:grid-cols-3 gap-5">
+        <div class="sm:col-span-1 space-y-5">
+          <div class="card-shell rounded-md p-4">
+            <div class="text-[11px] text-t1">Overall Risk</div>
+            <div class="mt-1 text-[26px] font-semibold text-t3 tabular-nums" id="riskScoreOut">72<span class="text-[13px] text-t1 font-normal"> /100</span></div>
+            <div class="mt-1 text-[11px] risk-severity-high" id="riskLevelOut">HIGH</div>
+          </div>
+          <div class="card-shell rounded-md p-4">
+            <div class="text-[11px] text-t1">Estimated Financial Exposure</div>
+            <div class="mt-1 text-[22px] font-semibold text-accent-2 tabular-nums" id="exposureOut">&#8377;18.4 Cr</div>
+            <div class="mt-1 text-[11px] text-t1">Annualized, demo data</div>
+          </div>
+        </div>
+
+        <div class="sm:col-span-2 card-shell rounded-md p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[13px] font-medium text-t2">Security budget</span>
+            <span class="text-[15px] font-semibold text-t3 tabular-nums" id="budgetOut">&#8377;40 L</span>
+          </div>
+          <input id="budgetSlider" type="range" min="10" max="100" value="40" step="5"
+                 class="mt-6 w-full accent-accent h-1.5 rounded-full bg-strong cursor-pointer"
+                 aria-label="Adjust demo security budget in lakhs of rupees">
+          <div class="flex justify-between text-[11px] text-t1 mt-1">
+            <span>&#8377;10 L</span><span>&#8377;1 Cr</span>
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-bd/60 flex items-center justify-between">
+            <span class="text-[13px] text-t1">Risk reduction at this budget</span>
+            <span class="text-[18px] font-semibold text-low tabular-nums" id="reductionOut">31%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section class="relative border-t border-bd/60 py-24 md:py-32">
+  <div class="max-w-[900px] mx-auto px-4 sm:px-6 text-center">
+    <h2 class="text-[34px] sm:text-[48px] lg:text-[56px] font-semibold leading-[1.05] tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-accent-2 to-white animate-gradient-x">
+      Stop guessing where your<br class="hidden sm:block"/> security budget goes.
+    </h2>
+    <div class="mt-10">
+      <a href="#top" class="conic-btn relative inline-flex items-center justify-center rounded-sm bg-t3 text-black text-[14px] font-medium px-7 py-3.5">
+        <span class="conic-border"></span>
+        <span class="relative z-10">Explore Trinetra</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="border-t border-bd/60 py-16">
+  <div class="max-w-[1320px] mx-auto px-4 sm:px-6">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2.5">
+          <svg width="24" height="24" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="48" fill="#000"/>
+            <g fill="none" stroke="#e5e5e5" stroke-width="3">
+              <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z"/>
+              <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z" transform="rotate(120 50 50)"/>
+              <path d="M50 18 C 35 30, 35 50, 50 62 C 65 50, 65 30, 50 18 Z" transform="rotate(240 50 50)"/>
+            </g>
+            <circle cx="50" cy="50" r="6" fill="#3355ff"/>
+          </svg>
+          <span class="font-semibold text-t3 text-[14px]">TRINETRA</span>
+        </div>
+        <p class="mt-4 text-[13px] text-t1 leading-relaxed max-w-[220px]">
+          See risk before it strikes.
+        </p>
+      </div>
+
+      <div>
+        <div class="text-[12px] text-t1 mb-3">Platform</div>
+        <ul class="space-y-2 text-[13px] text-t1">
+          <li><a href="#problem" class="hover:text-t3">Problem</a></li>
+          <li><a href="#how-it-works" class="hover:text-t3">How it works</a></li>
+          <li><a href="#intelligence" class="hover:text-t3">Intelligence</a></li>
+          <li><a href="#platform" class="hover:text-t3">Dashboard preview</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="text-[12px] text-t1 mb-3">Data sources</div>
+        <ul class="space-y-2 text-[13px] text-t1">
+          <li>NVD</li>
+          <li>CISA KEV</li>
+          <li>FIRST EPSS</li>
+          <li>MITRE ATT&amp;CK</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="text-[12px] text-t1 mb-3">Project</div>
+        <ul class="space-y-2 text-[13px] text-t1">
+          <li>SIH26105 &middot; Smart India Hackathon 2026</li>
+          <li>Theme: Blockchain &amp; Cybersecurity</li>
+          <li>Team Vajra</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-14 pt-6 border-t border-bd/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-[12px] text-t1">&copy; 2026 Trinetra. Built for SIH26105.</p>
+      <p class="text-[12px] text-t1">Demo data shown throughout is illustrative.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const iconMenu = document.getElementById('iconMenu');
+  const iconClose = document.getElementById('iconClose');
+  navToggle.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('hidden') === false;
+    navToggle.setAttribute('aria-expanded', String(isOpen));
+    iconMenu.classList.toggle('hidden', isOpen);
+    iconClose.classList.toggle('hidden', !isOpen);
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileMenu.classList.add('hidden');
+    navToggle.setAttribute('aria-expanded', 'false');
+    iconMenu.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+  }));
+
+  // Budget slider demo (illustrative math only)
+  const slider = document.getElementById('budgetSlider');
+  const budgetOut = document.getElementById('budgetOut');
+  const reductionOut = document.getElementById('reductionOut');
+  const riskScoreOut = document.getElementById('riskScoreOut');
+  const riskLevelOut = document.getElementById('riskLevelOut');
+  const exposureOut = document.getElementById('exposureOut');
+
+  function fmtBudget(lakhs) {
+    if (lakhs >= 100) return '\u20b9' + (lakhs / 100).toFixed(lakhs % 100 === 0 ? 0 : 1) + ' Cr';
+    return '\u20b9' + lakhs + ' L';
+  }
+
+  function updateDemo() {
+    const budget = Number(slider.value); // in lakhs, 10-100
+    // Illustrative diminishing-returns curve, purely for demo feel
+    const reduction = Math.min(78, Math.round(12 + 66 * (1 - Math.exp(-budget / 45))));
+    const newScore = Math.max(18, Math.round(72 - (reduction * 0.62)));
+    const newExposureCr = Math.max(3.2, (18.4 * (1 - reduction / 100)).toFixed(1));
+
+    budgetOut.textContent = fmtBudget(budget);
+    reductionOut.textContent = reduction + '%';
+    riskScoreOut.innerHTML = newScore + '<span class="text-[13px] text-t1 font-normal"> /100</span>';
+    exposureOut.textContent = '\u20b9' + newExposureCr + ' Cr';
+
+    let level = 'LOW', cls = 'risk-severity-low';
+    if (newScore >= 75) { level = 'CRITICAL'; cls = 'risk-severity-critical'; }
+    else if (newScore >= 50) { level = 'HIGH'; cls = 'risk-severity-high'; }
+    else if (newScore >= 25) { level = 'MEDIUM'; cls = 'risk-severity-medium'; }
+    riskLevelOut.textContent = level;
+    riskLevelOut.className = 'mt-1 text-[11px] ' + cls;
+  }
+  slider.addEventListener('input', updateDemo);
+  updateDemo();
+</script>
+
+</body>
+</html>
