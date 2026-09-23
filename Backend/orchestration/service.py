@@ -18,6 +18,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+from fastapi import HTTPException, status
+
+
 from blockchain.hashing import (
     compute_composite_hash,
     compute_data_snapshot_hash,
@@ -26,11 +29,13 @@ from blockchain.hashing import (
 from blockchain.provider import get_blockchain_provider
 from blockchain.schemas import ProvenanceRecord
 from decision.alternatives import generate_alternative_portfolios
-from decision.schemas import CandidateControl, OptimizationResult
+from decision.schemas import AlternativePortfolio, CandidateControl, OptimizationResult
 from decision.store import get_optimization, save_optimization
 from financial_crq.engine import calculate_financial_crq
 from financial_crq.schemas import FinancialCRQInput
 from monte_carlo.simulator import build_monte_carlo_input_from_crq, run_simulation
+from optimization.optimizer import run_optimization as execute_real_optimizer
+from optimization.schemas import OptimizationRunRequest as RealOptRequest
 from risk.engine import calculate_risk
 from risk.schemas import RiskCalculationRequest
 
@@ -50,90 +55,6 @@ from .state import (
 )
 
 logger = logging.getLogger("trinetra.orchestration")
-
-
-def _get_benchmark_candidate_controls(multiplier: float = 1.0) -> List[CandidateControl]:
-    """Retrieve standard candidate control catalog scaled by risk multiplier."""
-    base = [
-        CandidateControl(
-            control_id="CTRL-MFA",
-            name="Phishing-Resistant MFA",
-            cost=350000.0,
-            risk_reduction=680000.0 * multiplier,
-            workforce_hours=80.0,
-            implementation_days=14,
-            applicable_assets=["AST-001", "AST-002", "AST-003", "AST-004"],
-            critical_assets_covered=4,
-            category="Identity & Access",
-        ),
-        CandidateControl(
-            control_id="CTRL-EDR",
-            name="Next-Gen EDR",
-            cost=600000.0,
-            risk_reduction=1050000.0 * multiplier,
-            workforce_hours=140.0,
-            implementation_days=21,
-            applicable_assets=["AST-001", "AST-002", "AST-003", "AST-005"],
-            critical_assets_covered=4,
-            category="Endpoint Security",
-        ),
-        CandidateControl(
-            control_id="CTRL-PATCH",
-            name="Automated Patch Management",
-            cost=400000.0,
-            risk_reduction=720000.0 * multiplier,
-            workforce_hours=100.0,
-            implementation_days=28,
-            applicable_assets=["AST-001", "AST-002", "AST-003", "AST-004"],
-            critical_assets_covered=4,
-            category="Vulnerability Management",
-        ),
-        CandidateControl(
-            control_id="CTRL-BACKUP",
-            name="Immutable Cloud Backups",
-            cost=450000.0,
-            risk_reduction=800000.0 * multiplier,
-            workforce_hours=90.0,
-            implementation_days=18,
-            applicable_assets=["AST-001", "AST-002", "AST-003"],
-            critical_assets_covered=3,
-            category="Data Resilience",
-        ),
-        CandidateControl(
-            control_id="CTRL-WAF",
-            name="Cloud Web Application Firewall",
-            cost=500000.0,
-            risk_reduction=650000.0 * multiplier,
-            workforce_hours=110.0,
-            implementation_days=20,
-            applicable_assets=["AST-001", "AST-002", "AST-004"],
-            critical_assets_covered=3,
-            category="Application Security",
-        ),
-        CandidateControl(
-            control_id="CTRL-PAM",
-            name="Privileged Access Management",
-            cost=700000.0,
-            risk_reduction=750000.0 * multiplier,
-            workforce_hours=160.0,
-            implementation_days=35,
-            applicable_assets=["AST-001", "AST-002"],
-            critical_assets_covered=2,
-            category="Identity & Access",
-        ),
-        CandidateControl(
-            control_id="CTRL-SIEM",
-            name="SIEM & 24/7 SOC Triage",
-            cost=1200000.0,
-            risk_reduction=1100000.0 * multiplier,
-            workforce_hours=220.0,
-            implementation_days=60,
-            applicable_assets=["AST-001", "AST-002", "AST-003", "AST-004"],
-            critical_assets_covered=4,
-            category="Security Operations",
-        ),
-    ]
-    return base
 
 
 def run_continuous_reoptimization(request: ReoptimizeRequest) -> ReoptimizeResponse:
@@ -212,27 +133,53 @@ def run_continuous_reoptimization(request: ReoptimizeRequest) -> ReoptimizeRespo
     prev_mc_res = run_simulation(prev_mc_input)
     prev_p95 = prev_mc_res.p95
 
-    # Baseline portfolio from store or calculated
-    prev_opt_id = request.optimization_id or "OPT-BENCHMARK-001"
-    existing_opt = get_optimization(prev_opt_id)
-    if existing_opt:
+    # Baseline portfolio from actual optimizer or registered store
+    if request.optimization_id:
+        existing_opt = get_optimization(request.optimization_id, demo_mode=False)
+        if not existing_opt:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Baseline optimization '{request.optimization_id}' was not found. An actual optimization result is unavailable.",
+            )
         prev_alt_res = generate_alternative_portfolios(existing_opt)
         prev_portfolio_obj = next(
             (p for p in prev_alt_res.alternatives if p.portfolio_id == prev_alt_res.selected_portfolio_id),
             prev_alt_res.alternatives[0],
         )
     else:
-        # Fallback baseline optimization
-        fallback_opt = OptimizationResult(
-            optimization_id=prev_opt_id,
-            title="Baseline Optimization Portfolio",
-            baseline_risk=prev_crq_res.expected_annual_loss,
+        # Run actual deterministic optimizer on previous asset state (no benchmark fallback)
+        prev_base_opt_req = RealOptRequest(
+            optimization_id=f"OPT-{previous_state.asset_id}-BASE",
             budget_limit=previous_state.budget_limit,
-            currency="INR",
-            candidate_controls=_get_benchmark_candidate_controls(),
+            asset_id=previous_state.asset_id,
+            cve_id=previous_state.cve_id,
+            cvss=previous_state.cvss,
+            epss=previous_state.epss,
+            kev=previous_state.kev,
+            internet_exposed=previous_state.internet_exposed,
+            criticality=previous_state.criticality,
+            revenue_loss_per_hour=previous_state.revenue_loss_per_hour,
+            downtime_hours=previous_state.downtime_hours,
+            incident_response_cost=previous_state.incident_response_cost,
+            recovery_cost=previous_state.recovery_cost,
+            regulatory_legal_cost=previous_state.regulatory_fine_estimate,
+            customer_business_impact=previous_state.customer_impact_cost,
+            record_to_decision_store=True,
         )
-        prev_alt_res = generate_alternative_portfolios(fallback_opt)
-        prev_portfolio_obj = prev_alt_res.alternatives[0]
+        prev_actual_run = execute_real_optimizer(prev_base_opt_req)
+        prev_portfolio_obj = AlternativePortfolio(
+            portfolio_id="portfolio-balanced-roi",
+            objective="Baseline Balanced Portfolio",
+            total_cost=prev_actual_run.total_cost,
+            risk_reduction=prev_actual_run.financial_loss_avoided,
+            residual_risk=prev_actual_run.residual_eal,
+            workforce_hours=float(len(prev_actual_run.selected_controls) * 40),
+            implementation_days=28,
+            selected_controls=prev_actual_run.selected_controls,
+            is_selected=True,
+            roi=round((prev_actual_run.financial_loss_avoided - prev_actual_run.total_cost) / prev_actual_run.total_cost, 2) if prev_actual_run.total_cost > 0 else 0.0,
+        )
+
 
     # -------------------------------------------------------------
     # 4. Resolve NEW Parameters & Recalculate Downstream
@@ -289,26 +236,40 @@ def run_continuous_reoptimization(request: ReoptimizeRequest) -> ReoptimizeRespo
     new_mc_res = run_simulation(new_mc_input)
     new_p95 = new_mc_res.p95
 
-    # 4d. Re-run Portfolio Optimization
+    # 4d. Re-run Portfolio Optimization using ACTUAL deterministic optimizer
     new_opt_id = f"OPT-{previous_state.asset_id}-{counter:03d}"
-    risk_scaling = max(0.2, new_crq_res.expected_annual_loss / 1800000.0)
-    new_controls = _get_benchmark_candidate_controls(multiplier=risk_scaling)
-
-    new_opt_scenario = OptimizationResult(
+    
+    real_opt_req = RealOptRequest(
         optimization_id=new_opt_id,
-        title=f"Continuous Re-Optimization for {previous_state.asset_id} ({reopt_id})",
-        baseline_risk=new_crq_res.expected_annual_loss,
         budget_limit=new_budget,
-        currency="INR",
-        candidate_controls=new_controls,
-        created_at=now_iso,
+        asset_id=previous_state.asset_id,
+        cve_id=previous_state.cve_id,
+        cvss=effective_cvss,
+        epss=effective_epss,
+        kev=effective_kev,
+        internet_exposed=new_exposed,
+        criticality=new_criticality,
+        revenue_loss_per_hour=new_rev_loss,
+        downtime_hours=new_downtime,
+        incident_response_cost=previous_state.incident_response_cost,
+        recovery_cost=previous_state.recovery_cost,
+        regulatory_legal_cost=previous_state.regulatory_fine_estimate,
+        customer_business_impact=previous_state.customer_impact_cost,
+        record_to_decision_store=True,
     )
-    save_optimization(new_opt_scenario)
+    actual_opt_run = execute_real_optimizer(real_opt_req)
 
-    new_alt_res = generate_alternative_portfolios(new_opt_scenario)
-    new_portfolio_obj = next(
-        (p for p in new_alt_res.alternatives if p.portfolio_id == new_alt_res.selected_portfolio_id),
-        new_alt_res.alternatives[0],
+    new_portfolio_obj = AlternativePortfolio(
+        portfolio_id="portfolio-balanced-roi",
+        objective="Balanced ROI & Cost-Efficiency",
+        total_cost=actual_opt_run.total_cost,
+        risk_reduction=actual_opt_run.financial_loss_avoided,
+        residual_risk=actual_opt_run.residual_eal,
+        workforce_hours=float(len(actual_opt_run.selected_controls) * 40),
+        implementation_days=28,
+        selected_controls=actual_opt_run.selected_controls,
+        is_selected=True,
+        roi=round((actual_opt_run.financial_loss_avoided - actual_opt_run.total_cost) / actual_opt_run.total_cost, 2) if actual_opt_run.total_cost > 0 else 0.0,
     )
 
     # -------------------------------------------------------------
@@ -318,8 +279,33 @@ def run_continuous_reoptimization(request: ReoptimizeRequest) -> ReoptimizeRespo
     crq_eal_delta = round(new_crq_res.expected_annual_loss - prev_crq_res.expected_annual_loss, 2)
     p95_delta = round(new_p95 - prev_p95, 2)
 
-    old_ctrl_ids = prev_portfolio_obj.selected_controls
-    new_ctrl_ids = new_portfolio_obj.selected_controls
+    def _to_ctrl_id(item: str) -> str:
+        name_map = {
+            "phishing-resistant mfa": "CTRL-MFA",
+            "multi-factor authentication": "CTRL-MFA",
+            "next-gen edr": "CTRL-EDR",
+            "endpoint detection and response": "CTRL-EDR",
+            "automated patch management": "CTRL-PATCH",
+            "vulnerability patching": "CTRL-PATCH",
+            "automated vulnerability & patch management": "CTRL-PATCH",
+            "immutable cloud backups": "CTRL-BACKUP",
+            "backup and recovery": "CTRL-BACKUP",
+            "cloud web application firewall": "CTRL-WAF",
+            "web application firewall": "CTRL-WAF",
+            "privileged access management": "CTRL-PAM",
+            "siem & 24/7 soc triage": "CTRL-SIEM",
+            "security monitoring": "CTRL-SIEM",
+            "security awareness & phishing simulation": "CTRL-TRAIN",
+            "security awareness training": "CTRL-TRAIN",
+            "zero trust network architecture": "CTRL-ZTNA",
+            "zero trust network access": "CTRL-ZTNA",
+            "database & field-level encryption": "CTRL-ENCRYPT",
+            "data encryption": "CTRL-ENCRYPT",
+        }
+        return name_map.get(item.strip().lower(), item.strip().upper())
+
+    old_ctrl_ids = [_to_ctrl_id(c) for c in prev_portfolio_obj.selected_controls]
+    new_ctrl_ids = [_to_ctrl_id(c) for c in new_portfolio_obj.selected_controls]
 
     controls_added = [c for c in new_ctrl_ids if c not in old_ctrl_ids]
     controls_removed = [c for c in old_ctrl_ids if c not in new_ctrl_ids]

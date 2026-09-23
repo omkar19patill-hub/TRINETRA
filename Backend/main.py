@@ -48,6 +48,8 @@ from blockchain import BLOCKCHAIN_MODEL_VERSION
 from blockchain.routes import router as blockchain_router
 from orchestration import ORCHESTRATION_MODEL_VERSION
 from orchestration.routes import router as orchestration_router
+from controls import CONTROLS_MODEL_VERSION, router as controls_router
+from optimization import OPTIMIZATION_MODEL_VERSION, router as optimization_router
 from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
 from schemas.vulnerability import (
     DataFreshness,
@@ -211,6 +213,8 @@ app.include_router(risk_router)
 app.include_router(financial_crq_router)
 app.include_router(monte_carlo_router)
 app.include_router(decision_router)
+app.include_router(controls_router)
+app.include_router(optimization_router)
 app.include_router(ml_router)
 app.include_router(ai_router)
 app.include_router(blockchain_router)
@@ -228,6 +232,8 @@ def root_info():
             "Risk Engine",
             "Financial CRQ",
             "Monte Carlo Simulation",
+            "Controls Catalog",
+            "Investment Optimization",
             "Decision Intelligence",
             "ML Risk Calibration",
             "Explainable AI",
@@ -238,6 +244,8 @@ def root_info():
         "risk_model_version": RISK_MODEL_VERSION,
         "financial_crq_model_version": FINANCIAL_MODEL_VERSION,
         "monte_carlo_model_version": MONTE_CARLO_MODEL_VERSION,
+        "controls_model_version": CONTROLS_MODEL_VERSION,
+        "optimization_model_version": OPTIMIZATION_MODEL_VERSION,
         "decision_model_version": DECISION_MODEL_VERSION,
         "ml_model_version": ML_MODEL_VERSION,
         "ai_explain_model_version": AI_EXPLAIN_VERSION,
@@ -246,6 +254,12 @@ def root_info():
         "swagger_docs": "/docs",
         "redoc_docs": "/redoc",
         "endpoints": {
+            "controls_list": "/controls",
+            "controls_assess": "/controls/assess",
+            "controls_resolve_dependencies": "/controls/resolve-dependencies",
+            "optimization_run": "/optimization/run",
+
+            "optimization_before_after": "/optimization/before-after",
             "risk_calculate": "/risk/calculate",
             "risk_health": "/risk/health",
             "financial_crq_calculate": "/financial-crq/calculate",
