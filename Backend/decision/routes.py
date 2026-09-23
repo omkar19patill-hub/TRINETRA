@@ -51,9 +51,11 @@ def health_check() -> DecisionHealthResponse:
     summary="List all available optimization scenarios",
     description="Returns all registered enterprise optimization datasets and benchmark scenarios.",
 )
-def get_all_optimizations() -> List[OptimizationResult]:
+def get_all_optimizations(
+    demo_mode: bool = Query(False, description="Include benchmark demo scenarios in optimization listing"),
+) -> List[OptimizationResult]:
     """List all registered optimizations in the store."""
-    return list_optimizations()
+    return list_optimizations(demo_mode=demo_mode)
 
 
 @router.post(
@@ -83,13 +85,20 @@ Evaluates and returns structured alternative investment portfolios:
 5. **Critical Asset Coverage Focus**
 """,
 )
-def get_alternatives(optimization_id: str) -> AlternativesResponse:
+def get_alternatives(
+    optimization_id: str,
+    demo_mode: bool = Query(False, description="Explicitly allow loading benchmark demonstration data if actual optimization is unavailable"),
+) -> AlternativesResponse:
     """Return structured alternative portfolios for the requested optimization scenario."""
-    optimization = get_optimization(optimization_id)
+    optimization = get_optimization(optimization_id, demo_mode=demo_mode)
     if not optimization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Optimization result with ID '{optimization_id}' was not found in the decision store.",
+            detail=(
+                f"Optimization result with ID '{optimization_id}' was not found in the decision store. "
+                "An actual optimization result is unavailable. Run POST /optimization/run "
+                "or specify demo_mode=true for demonstration benchmark data."
+            ),
         )
     return generate_alternative_portfolios(optimization)
 
@@ -110,13 +119,18 @@ def get_opportunity_cost(
         None,
         description="Optional portfolio ID to treat as the baseline selected portfolio",
     ),
+    demo_mode: bool = Query(False, description="Explicitly allow loading benchmark demonstration data if actual optimization is unavailable"),
 ) -> OpportunityCostResponse:
     """Quantify modeled risk reduction sacrificed between portfolios."""
-    optimization = get_optimization(optimization_id)
+    optimization = get_optimization(optimization_id, demo_mode=demo_mode)
     if not optimization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Optimization result with ID '{optimization_id}' was not found in the decision store.",
+            detail=(
+                f"Optimization result with ID '{optimization_id}' was not found in the decision store. "
+                "An actual optimization result is unavailable. Run POST /optimization/run "
+                "or specify demo_mode=true for demonstration benchmark data."
+            ),
         )
     return calculate_opportunity_cost(optimization, target_portfolio_id)
 
@@ -139,13 +153,18 @@ def get_marginal_budget(
         None,
         description="Comma-separated custom budget increments (e.g. '500000,1000000,2500000' or '0')",
     ),
+    demo_mode: bool = Query(False, description="Explicitly allow loading benchmark demonstration data if actual optimization is unavailable"),
 ) -> MarginalBudgetResponse:
     """Evaluate marginal returns per rupee at incremental budget tiers."""
-    optimization = get_optimization(optimization_id)
+    optimization = get_optimization(optimization_id, demo_mode=demo_mode)
     if not optimization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Optimization result with ID '{optimization_id}' was not found in the decision store.",
+            detail=(
+                f"Optimization result with ID '{optimization_id}' was not found in the decision store. "
+                "An actual optimization result is unavailable. Run POST /optimization/run "
+                "or specify demo_mode=true for demonstration benchmark data."
+            ),
         )
 
     parsed_increments: Optional[List[float]] = None
@@ -174,16 +193,22 @@ def get_control_explanations(
         None,
         description="Optional portfolio ID to explain (defaults to primary selected portfolio)",
     ),
+    demo_mode: bool = Query(False, description="Explicitly allow loading benchmark demonstration data if actual optimization is unavailable"),
 ) -> List[ControlExplanation]:
     """Return explainable evidence structures for all candidate controls."""
-    optimization = get_optimization(optimization_id)
+    optimization = get_optimization(optimization_id, demo_mode=demo_mode)
     if not optimization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Optimization result with ID '{optimization_id}' was not found in the decision store.",
+            detail=(
+                f"Optimization result with ID '{optimization_id}' was not found in the decision store. "
+                "An actual optimization result is unavailable. Run POST /optimization/run "
+                "or specify demo_mode=true for demonstration benchmark data."
+            ),
         )
     
     alt_response = generate_alternative_portfolios(optimization)
     target_id = portfolio_id or alt_response.selected_portfolio_id
     target_portfolio = next((p for p in alt_response.alternatives if p.portfolio_id == target_id), alt_response.alternatives[0])
     return target_portfolio.control_explanations or []
+

@@ -15,7 +15,10 @@ from .schemas import CandidateControl, OptimizationResult
 
 
 _LOCK = threading.Lock()
-_OPTIMIZATION_STORE: Dict[str, OptimizationResult] = {}
+_ACTUAL_OPTIMIZATION_STORE: Dict[str, OptimizationResult] = {}
+_BENCHMARK_OPTIMIZATION_STORE: Dict[str, OptimizationResult] = {}
+# Backwards-compatible reference alias
+_OPTIMIZATION_STORE = _ACTUAL_OPTIMIZATION_STORE
 
 
 def _get_benchmark_controls() -> List[CandidateControl]:
@@ -145,7 +148,7 @@ def _get_benchmark_controls() -> List[CandidateControl]:
 
 
 def seed_benchmark_optimizations() -> None:
-    """Initialize benchmark enterprise optimization instances."""
+    """Initialize benchmark enterprise optimization instances strictly into benchmark storage."""
     benchmark_controls = _get_benchmark_controls()
     
     primary_benchmark = OptimizationResult(
@@ -157,6 +160,10 @@ def seed_benchmark_optimizations() -> None:
         selected_portfolio_id="portfolio-balanced-roi",
         candidate_controls=benchmark_controls,
         created_at=datetime.now(timezone.utc).isoformat(),
+        data_source="benchmark",
+        is_benchmark=True,
+        model_version="OPT-BENCHMARK-1.0",
+        assessment_id="AST-BENCHMARK-001",
     )
 
     enterprise_scenario = OptimizationResult(
@@ -168,39 +175,85 @@ def seed_benchmark_optimizations() -> None:
         selected_portfolio_id="portfolio-balanced-roi",
         candidate_controls=benchmark_controls,
         created_at=datetime.now(timezone.utc).isoformat(),
+        data_source="benchmark",
+        is_benchmark=True,
+        model_version="OPT-BENCHMARK-1.0",
+        assessment_id="AST-ENTERPRISE-001",
     )
 
     with _LOCK:
-        _OPTIMIZATION_STORE["OPT-BENCHMARK-001"] = primary_benchmark
-        _OPTIMIZATION_STORE["opt-benchmark-001"] = primary_benchmark
-        _OPTIMIZATION_STORE["OPT-2026-001"] = primary_benchmark
-        _OPTIMIZATION_STORE["opt-default-001"] = primary_benchmark
-        _OPTIMIZATION_STORE["OPT-ENTERPRISE-001"] = enterprise_scenario
-        _OPTIMIZATION_STORE["opt-enterprise-001"] = enterprise_scenario
+        _BENCHMARK_OPTIMIZATION_STORE["OPT-BENCHMARK-001"] = primary_benchmark
+        _BENCHMARK_OPTIMIZATION_STORE["opt-benchmark-001"] = primary_benchmark
+        _BENCHMARK_OPTIMIZATION_STORE["OPT-2026-001"] = primary_benchmark
+        _BENCHMARK_OPTIMIZATION_STORE["opt-default-001"] = primary_benchmark
+        _BENCHMARK_OPTIMIZATION_STORE["OPT-ENTERPRISE-001"] = enterprise_scenario
+        _BENCHMARK_OPTIMIZATION_STORE["opt-enterprise-001"] = enterprise_scenario
 
 
-def get_optimization(optimization_id: str) -> Optional[OptimizationResult]:
-    """Retrieve an optimization result by identifier."""
-    if not _OPTIMIZATION_STORE:
-        seed_benchmark_optimizations()
+def get_optimization(optimization_id: str, demo_mode: bool = False) -> Optional[OptimizationResult]:
+    """Retrieve an optimization result by identifier.
+    
+    Checks actual optimizer store first. If not found:
+    - If demo_mode is True, returns matching benchmark data (or default benchmark).
+    - If demo_mode is False, only returns if explicitly referencing a benchmark identifier
+      (e.g. for unit and integration test fixtures), and labels it as benchmark data.
+      Never silently replaces an actual optimization run ID with benchmark data.
+    """
+    clean_id = (optimization_id or "").strip()
     with _LOCK:
-        return _OPTIMIZATION_STORE.get(optimization_id) or _OPTIMIZATION_STORE.get(optimization_id.strip())
+        # 1. Search actual optimizer results
+        if clean_id in _ACTUAL_OPTIMIZATION_STORE:
+            return _ACTUAL_OPTIMIZATION_STORE[clean_id]
+        for k, v in _ACTUAL_OPTIMIZATION_STORE.items():
+            if k.lower() == clean_id.lower():
+                return v
+
+        # 2. Check benchmark store
+        is_explicit_benchmark = (
+            clean_id.upper().startswith("OPT-BENCHMARK")
+            or clean_id.upper().startswith("OPT-ENTERPRISE")
+            or clean_id.upper() in ["OPT-2026-001", "OPT-DEFAULT-001"]
+        )
+
+        if demo_mode:
+            # Explicit demo mode requested: allow benchmark fallback
+            if clean_id in _BENCHMARK_OPTIMIZATION_STORE:
+                return _BENCHMARK_OPTIMIZATION_STORE[clean_id]
+            for k, v in _BENCHMARK_OPTIMIZATION_STORE.items():
+                if k.lower() == clean_id.lower():
+                    return v
+            return _BENCHMARK_OPTIMIZATION_STORE.get("OPT-BENCHMARK-001")
+
+        if is_explicit_benchmark:
+            # Caller explicitly requested a benchmark test fixture ID
+            return (
+                _BENCHMARK_OPTIMIZATION_STORE.get(clean_id)
+                or _BENCHMARK_OPTIMIZATION_STORE.get(clean_id.upper())
+                or _BENCHMARK_OPTIMIZATION_STORE.get(clean_id.lower())
+            )
+
+        # Neither actual nor explicit demo mode: do not silently fall back
+        return None
 
 
-def save_optimization(optimization: OptimizationResult) -> None:
-    """Save or update an optimization result."""
+def save_optimization(optimization: OptimizationResult, is_benchmark: bool = False) -> None:
+    """Save or update an optimization result in the appropriate store."""
     with _LOCK:
-        _OPTIMIZATION_STORE[optimization.optimization_id] = optimization
+        if is_benchmark or optimization.is_benchmark or optimization.data_source == "benchmark":
+            _BENCHMARK_OPTIMIZATION_STORE[optimization.optimization_id] = optimization
+        else:
+            _ACTUAL_OPTIMIZATION_STORE[optimization.optimization_id] = optimization
+            # Keep alias in sync for backward compatibility
+            _OPTIMIZATION_STORE[optimization.optimization_id] = optimization
 
 
-def list_optimizations() -> List[OptimizationResult]:
-    """Return all unique stored optimization results."""
-    if not _OPTIMIZATION_STORE:
-        seed_benchmark_optimizations()
+def list_optimizations(demo_mode: bool = False) -> List[OptimizationResult]:
+    """Return stored optimization results. Returns actual optimizations by default, or benchmark if demo_mode is True."""
     with _LOCK:
         seen = set()
         results = []
-        for opt in _OPTIMIZATION_STORE.values():
+        source_store = _ACTUAL_OPTIMIZATION_STORE if (not demo_mode and _ACTUAL_OPTIMIZATION_STORE) else {**_BENCHMARK_OPTIMIZATION_STORE, **_ACTUAL_OPTIMIZATION_STORE}
+        for opt in source_store.values():
             if opt.optimization_id not in seen:
                 seen.add(opt.optimization_id)
                 results.append(opt)
@@ -209,8 +262,8 @@ def list_optimizations() -> List[OptimizationResult]:
 
 def store_count() -> int:
     """Return count of registered unique optimizations."""
-    return len(list_optimizations())
+    return len(list_optimizations(demo_mode=True))
 
 
-# Seed immediately on module import
+# Seed benchmark instances in isolated benchmark storage immediately on module import
 seed_benchmark_optimizations()

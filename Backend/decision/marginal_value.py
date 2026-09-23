@@ -147,4 +147,9 @@ def evaluate_marginal_budget(
         evaluations=evaluations,
         diminishing_returns_observed=diminishing_returns,
         recommendation=rec,
+        data_source=getattr(optimization, "data_source", "actual_optimizer"),
+        is_benchmark=getattr(optimization, "is_benchmark", False),
+        model_version=getattr(optimization, "model_version", "DEC-1.0"),
+        assessment_id=getattr(optimization, "assessment_id", None),
     )
+

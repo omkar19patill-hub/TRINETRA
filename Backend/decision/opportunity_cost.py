@@ -112,4 +112,9 @@ def calculate_opportunity_cost(
         comparisons=comparisons,
         summary_statement=summary,
         assumptions=assumptions,
+        data_source=getattr(optimization, "data_source", "actual_optimizer"),
+        is_benchmark=getattr(optimization, "is_benchmark", False),
+        model_version=getattr(optimization, "model_version", "DEC-1.0"),
+        assessment_id=getattr(optimization, "assessment_id", None),
     )
+

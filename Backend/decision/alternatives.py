@@ -269,4 +269,9 @@ def generate_alternative_portfolios(optimization: OptimizationResult) -> Alterna
         selected_portfolio_id="portfolio-balanced-roi",
         alternatives=alternatives,
         decision_summary=summary,
+        data_source=getattr(optimization, "data_source", "actual_optimizer"),
+        is_benchmark=getattr(optimization, "is_benchmark", False),
+        model_version=getattr(optimization, "model_version", "DEC-1.0"),
+        assessment_id=getattr(optimization, "assessment_id", None),
     )
+

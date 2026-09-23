@@ -361,6 +361,35 @@ class AlternativesResponse(BaseModel):
             ],
         ),
     ]
+    data_source: Annotated[
+        str,
+        Field(
+            default="actual_optimizer",
+            description="Source of optimization data: 'actual_optimizer', 'benchmark', or 'manual'",
+        ),
+    ] = "actual_optimizer"
+    is_benchmark: Annotated[
+        bool,
+        Field(
+            default=False,
+            description="Whether this response is derived from benchmark demonstration data",
+        ),
+    ] = False
+    model_version: Annotated[
+        str,
+        Field(
+            default="DEC-1.0",
+            description="Decision / Optimizer model version",
+        ),
+    ] = "DEC-1.0"
+    assessment_id: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            description="Associated assessment identifier",
+        ),
+    ] = None
+
 
 
 class OpportunityCostComparison(BaseModel):
@@ -523,6 +552,35 @@ class OpportunityCostResponse(BaseModel):
             description="Methodological modeling assumptions governing opportunity cost quantification",
         ),
     ]
+    data_source: Annotated[
+        str,
+        Field(
+            default="actual_optimizer",
+            description="Source of optimization data: 'actual_optimizer', 'benchmark', or 'manual'",
+        ),
+    ] = "actual_optimizer"
+    is_benchmark: Annotated[
+        bool,
+        Field(
+            default=False,
+            description="Whether this response is derived from benchmark demonstration data",
+        ),
+    ] = False
+    model_version: Annotated[
+        str,
+        Field(
+            default="DEC-1.0",
+            description="Decision / Optimizer model version",
+        ),
+    ] = "DEC-1.0"
+    assessment_id: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            description="Associated assessment identifier",
+        ),
+    ] = None
+
 
 
 class MarginalBudgetEvaluation(BaseModel):
@@ -670,6 +728,34 @@ class MarginalBudgetResponse(BaseModel):
             ],
         ),
     ]
+    data_source: Annotated[
+        str,
+        Field(
+            default="actual_optimizer",
+            description="Source of optimization data: 'actual_optimizer', 'benchmark', or 'manual'",
+        ),
+    ] = "actual_optimizer"
+    is_benchmark: Annotated[
+        bool,
+        Field(
+            default=False,
+            description="Whether this response is derived from benchmark demonstration data",
+        ),
+    ] = False
+    model_version: Annotated[
+        str,
+        Field(
+            default="DEC-1.0",
+            description="Decision / Optimizer model version",
+        ),
+    ] = "DEC-1.0"
+    assessment_id: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            description="Associated assessment identifier",
+        ),
+    ] = None
 
 
 class OptimizationResult(BaseModel):
@@ -747,6 +833,35 @@ class OptimizationResult(BaseModel):
             description="ISO timestamp when optimization was executed",
         ),
     ]
+    data_source: Annotated[
+        str,
+        Field(
+            default="actual_optimizer",
+            description="Source of optimization data: 'actual_optimizer', 'benchmark', or 'manual'",
+        ),
+    ] = "actual_optimizer"
+    is_benchmark: Annotated[
+        bool,
+        Field(
+            default=False,
+            description="Whether this optimization is benchmark demonstration data",
+        ),
+    ] = False
+    model_version: Annotated[
+        str,
+        Field(
+            default="OPT-DET-1.0",
+            description="Optimizer model version",
+        ),
+    ] = "OPT-DET-1.0"
+    assessment_id: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            description="Associated assessment identifier",
+        ),
+    ] = None
+
 
 
 class DecisionHealthResponse(BaseModel):
