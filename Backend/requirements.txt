@@ -5,7 +5,10 @@ httpx>=0.27.0
 python-dotenv>=1.0.0
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
-scikit-learn>=1.5.0
+# Pinned: ml/model.joblib was trained with 1.7.2. A newer scikit-learn
+# unpickles it with InconsistentVersionWarning and risks invalid results.
+# Bump only together with retraining the artifact.
+scikit-learn==1.7.2
 pandas>=2.2.0
 numpy>=1.26.0
 joblib>=1.4.0
