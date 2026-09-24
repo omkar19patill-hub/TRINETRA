@@ -8,7 +8,7 @@ Defines structured data contracts for:
 2. Before-and-After Quantitative Portfolio Impact Comparisons
 """
 
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Annotated, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 from controls.models import ControlDependencyResolution, SecurityControl
 
@@ -231,11 +231,17 @@ class OptimizationRunResponse(BaseModel):
         },
     )
 
-    selected_controls: List[Any] = Field(
-        description="Controls selected in the optimal portfolio (SecurityControl objects or control IDs)",
+    selected_controls: List[str] = Field(
+        description=(
+            "Stable control IDs selected in the optimal portfolio (e.g. CTRL-MFA), "
+            "matching AlternativePortfolio.selected_controls"
+        ),
     )
-    rejected_controls: List[Any] = Field(
-        description="Candidate controls excluded due to budget, dependencies, or lower efficiency",
+    rejected_controls: List[str] = Field(
+        description=(
+            "Stable control IDs excluded due to budget, dependencies, or lower "
+            "efficiency (e.g. CTRL-PAM)"
+        ),
     )
     total_cost: float = Field(
         ge=0.0,

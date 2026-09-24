@@ -247,3 +247,51 @@ def test_invalid_input_error_handling():
         }
         res = client.post("/optimization/run", json=payload)
         assert res.status_code == 422
+
+
+def test_selected_and_rejected_controls_are_control_id_strings():
+    """Both control lists must contain stable control ID strings, not objects.
+
+    Guards the List[str] contract on OptimizationRunResponse. response_model
+    validation is active on POST /optimization/run, so a non-string value would
+    now fail at the response boundary rather than being passed through silently.
+    Covers the default catalog path and the custom_controls path, the latter
+    being the only route by which caller-supplied data reaches these fields.
+    """
+    from controls.catalog import get_all_controls
+
+    custom = get_all_controls()[0].model_dump()
+    custom["control_id"] = "CTRL-CUSTOM"
+    custom["control_name"] = "Custom Regression Control"
+
+    cases = {
+        "default": {"budget_limit": 1800000.0, "asset_id": "AST-001"},
+        "custom_controls": {
+            "budget_limit": 2000000.0,
+            "asset_id": "AST-001",
+            "custom_controls": [custom],
+        },
+    }
+
+    with TestClient(app) as client:
+        for case_name, payload in cases.items():
+            res = client.post("/optimization/run", json=payload)
+            assert res.status_code == 200, f"{case_name} returned {res.status_code}"
+            data = res.json()
+
+            for field in ("selected_controls", "rejected_controls"):
+                values = data[field]
+                assert isinstance(values, list)
+                for value in values:
+                    assert isinstance(value, str), (
+                        f"{case_name}: {field} contained a non-string {value!r}"
+                    )
+                    assert value.startswith("CTRL-"), (
+                        f"{case_name}: {field} contained {value!r}, expected a CTRL- ID"
+                    )
+
+        # The custom control must actually have been considered, so the
+        # custom_controls path is genuinely exercised rather than passing vacuously.
+        res = client.post("/optimization/run", json=cases["custom_controls"])
+        data = res.json()
+        assert "CTRL-CUSTOM" in data["selected_controls"] + data["rejected_controls"]
