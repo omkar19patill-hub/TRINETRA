@@ -261,3 +261,72 @@ def test_custom_optimization_registration():
 
         mb_resp = client.get("/decision/OPT-CUSTOM-TEST-001/marginal-budget?increments=200000,500000")
         assert mb_resp.status_code == 200
+
+
+def test_alternative_portfolios_return_control_ids():
+    """selected_controls must contain stable control IDs, not friendly names.
+
+    Regression test for the names-vs-IDs inconsistency: decision alternatives
+    previously returned control names while the optimizer returned control IDs.
+    """
+    with TestClient(app) as client:
+        response = client.get("/decision/OPT-BENCHMARK-001/alternatives")
+        assert response.status_code == 200
+        data = response.json()
+
+        for alt in data["alternatives"]:
+            for control in alt["selected_controls"]:
+                assert control.startswith("CTRL-"), (
+                    f"expected a control ID, got friendly name {control!r}"
+                )
+                assert control == control.upper(), (
+                    f"control ID should be upper-case, got {control!r}"
+                )
+
+
+def test_control_explanations_still_expose_friendly_names():
+    """Human-readable names must remain available after selected_controls became IDs."""
+    with TestClient(app) as client:
+        response = client.get("/decision/OPT-BENCHMARK-001/alternatives")
+        assert response.status_code == 200
+        data = response.json()
+
+        explanations = data["alternatives"][0]["control_explanations"]
+        assert explanations, "expected control explanations to be present"
+
+        for exp in explanations:
+            assert exp["control_id"].startswith("CTRL-")
+            # The friendly name is a human-readable label, not an ID
+            assert exp["control"]
+            assert not exp["control"].startswith("CTRL-")
+
+
+def test_selected_controls_match_explanation_ids():
+    """Every selected control ID must correspond to an explanation marked selected."""
+    with TestClient(app) as client:
+        response = client.get("/decision/OPT-BENCHMARK-001/alternatives")
+        assert response.status_code == 200
+        data = response.json()
+
+        for alt in data["alternatives"]:
+            selected_ids = set(alt["selected_controls"])
+            explained_selected = {
+                e["control_id"] for e in alt["control_explanations"] if e["selected"]
+            }
+            assert selected_ids == explained_selected, (
+                "selected_controls and control_explanations disagree on selection"
+            )
+
+
+def test_opportunity_cost_gained_sacrificed_use_control_ids():
+    """controls_gained / controls_sacrificed must be IDs now that portfolios use IDs."""
+    with TestClient(app) as client:
+        response = client.get("/decision/OPT-BENCHMARK-001/opportunity-cost")
+        assert response.status_code == 200
+        data = response.json()
+
+        for comp in data["comparisons"]:
+            for control in comp["controls_gained"] + comp["controls_sacrificed"]:
+                assert control.startswith("CTRL-"), (
+                    f"expected a control ID, got {control!r}"
+                )

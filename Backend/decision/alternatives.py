@@ -150,7 +150,9 @@ def _solve_portfolio(
         residual_risk=residual,
         workforce_hours=current_hours,
         implementation_days=max_days,
-        selected_controls=[c.name for c in selected_ctrls],
+        # Stable control IDs, matching OptimizationRunResponse.selected_controls.
+        # Human-readable names remain available via control_explanations[].control.
+        selected_controls=[c.control_id for c in selected_ctrls],
         control_explanations=explanations,
         is_selected=is_selected,
         roi=round(roi, 2),

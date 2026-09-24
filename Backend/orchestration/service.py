@@ -279,33 +279,11 @@ def run_continuous_reoptimization(request: ReoptimizeRequest) -> ReoptimizeRespo
     crq_eal_delta = round(new_crq_res.expected_annual_loss - prev_crq_res.expected_annual_loss, 2)
     p95_delta = round(new_p95 - prev_p95, 2)
 
-    def _to_ctrl_id(item: str) -> str:
-        name_map = {
-            "phishing-resistant mfa": "CTRL-MFA",
-            "multi-factor authentication": "CTRL-MFA",
-            "next-gen edr": "CTRL-EDR",
-            "endpoint detection and response": "CTRL-EDR",
-            "automated patch management": "CTRL-PATCH",
-            "vulnerability patching": "CTRL-PATCH",
-            "automated vulnerability & patch management": "CTRL-PATCH",
-            "immutable cloud backups": "CTRL-BACKUP",
-            "backup and recovery": "CTRL-BACKUP",
-            "cloud web application firewall": "CTRL-WAF",
-            "web application firewall": "CTRL-WAF",
-            "privileged access management": "CTRL-PAM",
-            "siem & 24/7 soc triage": "CTRL-SIEM",
-            "security monitoring": "CTRL-SIEM",
-            "security awareness & phishing simulation": "CTRL-TRAIN",
-            "security awareness training": "CTRL-TRAIN",
-            "zero trust network architecture": "CTRL-ZTNA",
-            "zero trust network access": "CTRL-ZTNA",
-            "database & field-level encryption": "CTRL-ENCRYPT",
-            "data encryption": "CTRL-ENCRYPT",
-        }
-        return name_map.get(item.strip().lower(), item.strip().upper())
-
-    old_ctrl_ids = [_to_ctrl_id(c) for c in prev_portfolio_obj.selected_controls]
-    new_ctrl_ids = [_to_ctrl_id(c) for c in new_portfolio_obj.selected_controls]
+    # Both portfolios carry stable control IDs: the optimizer emits them directly,
+    # and generate_alternative_portfolios() now does too. No name->ID translation
+    # is required.
+    old_ctrl_ids = list(prev_portfolio_obj.selected_controls)
+    new_ctrl_ids = list(new_portfolio_obj.selected_controls)
 
     controls_added = [c for c in new_ctrl_ids if c not in old_ctrl_ids]
     controls_removed = [c for c in old_ctrl_ids if c not in new_ctrl_ids]

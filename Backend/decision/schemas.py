@@ -197,10 +197,10 @@ class AlternativePortfolio(BaseModel):
                 "workforce_hours": 410.0,
                 "implementation_days": 28,
                 "selected_controls": [
-                    "Phishing-Resistant MFA",
-                    "Next-Gen EDR",
-                    "Automated Vulnerability & Patch Management",
-                    "Immutable Cloud Backups",
+                    "CTRL-MFA",
+                    "CTRL-EDR",
+                    "CTRL-PATCH",
+                    "CTRL-BACKUP",
                 ],
                 "is_selected": True,
                 "roi": 1.81,
@@ -265,13 +265,17 @@ class AlternativePortfolio(BaseModel):
     selected_controls: Annotated[
         List[str],
         Field(
-            description="List of control names or IDs included in this portfolio",
+            description=(
+                "Stable control IDs included in this portfolio, matching "
+                "OptimizationRunResponse.selected_controls. Human-readable control "
+                "names are available in control_explanations[].control."
+            ),
             examples=[
                 [
-                    "Phishing-Resistant MFA",
-                    "Next-Gen EDR",
-                    "Automated Vulnerability & Patch Management",
-                    "Immutable Cloud Backups",
+                    "CTRL-MFA",
+                    "CTRL-EDR",
+                    "CTRL-PATCH",
+                    "CTRL-BACKUP",
                 ]
             ],
         ),

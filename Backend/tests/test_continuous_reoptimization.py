@@ -241,3 +241,58 @@ def test_root_endpoint_includes_reoptimization_metadata():
         assert data["endpoints"]["reoptimize"] == "/reoptimize"
         assert data["endpoints"]["recalculate_asset"] == "/recalculate/{asset_id}"
         assert data["endpoints"]["orchestration_health"] == "/orchestration/health"
+
+
+def test_reoptimize_portfolios_use_consistent_control_ids():
+    """Previous and new portfolios must both expose control IDs, not mixed conventions."""
+    with TestClient(app) as client:
+        response = client.post(
+            "/reoptimize",
+            json={"asset_id": "AST-001", "cve_id": "CVE-2026-1234", "kev": True},
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        prev_controls = data["previous_portfolio"]["selected_controls"]
+        new_controls = data["new_portfolio"]["selected_controls"]
+
+        for control in prev_controls + new_controls:
+            assert control.startswith("CTRL-"), (
+                f"expected a control ID, got {control!r}"
+            )
+
+
+def test_reoptimize_with_benchmark_baseline_has_no_false_portfolio_delta():
+    """Contract test: benchmark-baseline deltas are ID-based and internally consistent.
+
+    Note: this asserts the desired contract rather than reproducing a past defect.
+    It passes both before and after the control-ID change, because the balanced-ROI
+    benchmark portfolio never selects any of the four controls whose names had gone
+    stale in the removed _to_ctrl_id map. It guards the invariant going forward.
+    """
+    with TestClient(app) as client:
+        response = client.post(
+            "/reoptimize",
+            json={
+                "asset_id": "AST-001",
+                "cve_id": "CVE-2026-1234",
+                "optimization_id": "OPT-BENCHMARK-001",
+                "kev": True,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        delta = data["portfolio_delta"]
+        added = delta["controls_added"]
+        removed = delta["controls_removed"]
+
+        for control in added + removed:
+            assert control.startswith("CTRL-"), (
+                f"expected a control ID, got {control!r} - name/ID mismatch"
+            )
+
+        # The same control must never appear as both added and removed
+        assert not (set(added) & set(removed)), (
+            f"control reported as both added and removed: {set(added) & set(removed)}"
+        )
