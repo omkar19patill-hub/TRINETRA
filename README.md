@@ -65,31 +65,6 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 | [MITRE ATT&CK](https://attack.mitre.org) | Adversary tactics/techniques mapping | Public / free |
 | Synthetic org/asset data | Fills the gap where real enterprise asset & financial data is private | Self-generated, clearly labeled as illustrative |
 
-## Project Structure
-
-```
-TRINETRA/
-├── Backend-riskEngine/        # PRIMARY UNIFIED BACKEND APPLICATION
-│   ├── main.py                # Primary FastAPI application entrypoint
-│   ├── config.py              # Centralized environment & intelligence configuration
-│   ├── api/                   # Unified API route definitions (/vulnerabilities, /ingestion)
-│   ├── ingestion/             # Ingestion orchestration, scheduler, and telemetry tracker
-│   ├── integrations/          # External threat intelligence clients (NVD, EPSS, CISA KEV, MITRE)
-│   ├── validation/            # Strict schema bounds and CVE format validators
-│   ├── normalization/         # Threat record normalization into canonical risk engine payloads
-│   ├── cache/                 # 2-Tier memory LRU & persistent SQLite WAL cache
-│   ├── risk/                  # Risk Engine core calculation & routers (/risk)
-│   ├── financial_crq/         # Financial CRQ / Open FAIR magnitude calculation (/financial-crq)
-│   ├── monte_carlo/           # Probabilistic Monte Carlo loss simulation (/monte-carlo)
-│   ├── schemas/               # Threat intelligence & vulnerability data schemas
-│   └── tests/                 # Comprehensive test suite (95 tests)
-├── Backend-input/             # Synthetic asset data generator & standalone input schemas
-├── Backend-integration/       # Standalone ingestion reference implementation
-├── Frontend/                  # React + Tailwind dashboard
-├── Assets/                    # Architecture diagrams and design assets
-└── README.md
-```
-
 ## Getting Started
 
 ### Prerequisites
