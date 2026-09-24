@@ -111,3 +111,70 @@ and restore any incidental changes with
 This was a pre-existing defect, not introduced by recent changes. It has since
 been fixed by threading the target paths through `train_and_save_model()`, as
 described under "Resolution".
+
+---
+
+## 2. Stale control-name map in `_to_ctrl_id()` (latent, never confirmed live)
+
+**Status:** RESOLVED by removal. Recorded here because the investigation findings
+are worth keeping, including the part that did **not** hold up.
+
+### What was found
+
+`_to_ctrl_id()` in `Backend/orchestration/service.py` translated control names to
+control IDs via a hardcoded 20-entry lowercase map, falling back to
+`item.strip().upper()` on a miss.
+
+Four benchmark control names were renamed in commit `f9f0fea`
+("data(decision): revise benchmark control economics"), but the map kept the
+pre-rename keys:
+
+| Name after `f9f0fea` (`decision/store.py`) | Map key (stale) |
+|---|---|
+| `Managed 24/7 SIEM & SOC Operations` | `siem & 24/7 soc triage` |
+| `Continuous Phishing Simulation & Training` | `security awareness & phishing simulation` |
+| `Zero Trust Network Access (ZTNA)` | `zero trust network architecture` |
+| `Database Field-Level Encryption` | `database & field-level encryption` |
+
+The staleness was verified by direct string comparison. Those four names would
+have missed the map and fallen through to `.upper()`.
+
+### Impact: latent, not reproducible
+
+An initial assessment suggested this could produce false
+`controls_added` / `controls_removed` results from `POST /reoptimize`.
+**That was not confirmed, and attempts to reproduce it failed.**
+
+The identical benchmark-baseline request was run against pre-fix and post-fix
+code and returned the same delta in both cases:
+
+```text
+pre-fix   added: ['CTRL-TRAIN', 'CTRL-WAF']   removed: ['CTRL-EDR', 'CTRL-BACKUP']
+post-fix  added: ['CTRL-TRAIN', 'CTRL-WAF']   removed: ['CTRL-EDR', 'CTRL-BACKUP']
+```
+
+The reason: the balanced-ROI benchmark portfolio only ever selects
+CTRL-MFA / CTRL-PATCH / CTRL-EDR / CTRL-BACKUP / CTRL-PAM, all of which were
+still mapped correctly. The four stale-named controls are lower ROI and are not
+selected within the stored benchmark budgets (1,800,000 and 2,500,000). The
+baseline portfolio is built from the stored optimization's own budget rather
+than the request's `budget_limit`, so a larger request budget does not widen it.
+
+Conclusion: the stale map was real, but **latent and unreachable** through the
+current API surface with current benchmark data. It was not observed to produce
+incorrect output.
+
+### Resolution
+
+Resolved as a side effect of the control-ID consistency change:
+`decision/alternatives.py` now returns control IDs rather than names, so both
+sides of the portfolio comparison use the same convention and no translation is
+needed. `_to_ctrl_id()` was deleted rather than repaired.
+
+This removes the latent hazard and the maintenance burden of a name map that had
+already drifted once. It is recorded as a contract improvement, not as the fix
+for a live defect.
+
+### Scope note
+
+Pre-existing on `main`. Surfaced during the API-contract investigation.

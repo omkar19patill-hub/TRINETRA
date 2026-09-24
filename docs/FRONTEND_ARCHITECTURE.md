@@ -109,23 +109,95 @@ No live API calls in this phase. `src/data/` holds every value the marketing
 site displays — real/sourced stats and illustrative demo data alike, clearly
 distinguished (see `MOCK_DATA.md`). Nothing lives inline in JSX.
 
-## 6. API Boundary (future — not built this phase)
+## 6. API Boundary (backend exists — no frontend integration this phase)
 
-Suggested, not binding, for when the dashboard phase begins:
+An earlier draft of this section listed a suggested `/api/*` boundary
+(`/api/dashboard`, `/api/threats`, `/api/risks`, …). **Those endpoints do not
+exist.** They were a proposal, never implemented, and building against them
+would produce a frontend that cannot talk to this backend.
+
+The routes below are the ones **actually implemented** in `Backend/`, verified
+against the running application's OpenAPI schema. There is no `/api` prefix, and
+most are `POST` because they take input data rather than returning a fixed
+resource.
+
+### Implemented — core pipeline
 
 ```text
-GET  /api/dashboard
-GET  /api/threats
-GET  /api/vulnerabilities
-GET  /api/risks
-GET  /api/financial-risk
-GET  /api/investments
-POST /api/simulate
+POST /risk/calculate              deterministic risk score from CVSS/EPSS/KEV/exposure
+POST /financial-crq/calculate     Open FAIR loss magnitude and Expected Annual Loss
+POST /monte-carlo/simulate        stochastic loss distribution (P50/P75/P90/P95/P99)
+POST /monte-carlo/from-crq        run a simulation directly from a CRQ result
+GET  /controls                    security control catalog
+POST /controls/assess             assess controls against an asset
+POST /controls/resolve-dependencies
+POST /optimization/run            budget-constrained control selection (main entry point)
+POST /optimization/before-after   baseline vs post-control comparison
 ```
 
-The real backend (Risk Engine, Financial CRQ, Monte Carlo) already exists as
-separate services — see the repo's backend `README.md` files — but no
-frontend integration happens in this phase.
+### Implemented — decision intelligence
+
+```text
+GET  /decision/optimizations
+POST /decision/register
+GET  /decision/{optimization_id}/alternatives
+GET  /decision/{optimization_id}/opportunity-cost
+GET  /decision/{optimization_id}/marginal-budget
+GET  /decision/{optimization_id}/explanation
+```
+
+These return 404 when an optimization ID is unknown. They do **not** silently
+fall back to benchmark data; pass `demo_mode=true` to opt into it explicitly.
+
+### Implemented — threat intelligence, ML, AI, provenance, orchestration
+
+```text
+GET  /vulnerabilities
+GET  /vulnerabilities/{cve_id}/enriched
+POST /vulnerabilities/risk-engine-payload
+POST /ingestion/vulnerability/{cve_id}/refresh
+POST /ingestion/bulk-sync
+GET  /ingestion/status
+
+POST /ml/predict
+GET  /ml/model-info
+
+POST /ai/explain-risk
+POST /ai/explain-optimization
+POST /ai/explain-scenario
+POST /ai/query
+
+POST /blockchain/record
+GET  /blockchain/verify/{assessment_id}
+GET  /blockchain/records
+GET  /blockchain/receipts
+
+POST /reoptimize
+POST /recalculate/{asset_id}
+GET  /orchestration/assets
+```
+
+Health endpoints exist per module (`/risk/health`, `/financial-crq/health`,
+`/monte-carlo/health`, `/decision/health`, `/ml/health`, `/ai/health`,
+`/blockchain/health`, `/ingestion/health`, `/orchestration/health`), plus `GET /`
+for service metadata and `/docs` / `/redoc` for interactive API documentation.
+
+### Not implemented
+
+There is no aggregated dashboard endpoint. A dashboard view must compose data
+from the routes above — `POST /optimization/run` is the closest single call,
+returning risk, financial loss and selected controls together.
+
+### Control identifiers
+
+`selected_controls` and `rejected_controls` contain stable control IDs
+(`CTRL-MFA`, `CTRL-EDR`, …), consistently across `/optimization/run` and
+`/decision/{id}/alternatives`. Human-readable names are available separately in
+`control_explanations[].control`, alongside `control_explanations[].control_id`.
+
+No frontend integration happens in this phase — `src/` currently contains no
+API calls. This section exists so that when integration begins, it targets the
+real contract.
 
 ## 7. State
 
