@@ -75,9 +75,14 @@ These were open questions in earlier drafts. They are now closed.
 ### Routing
 ```
 /              Marketing home — single continuous scrolling page, anchor navigation
-/dashboard     Placeholder route only. Not implemented this phase.
+/dashboard     Product surface. Nested routes only — see below.
+/dashboard/*   Dashboard sub-routes (e.g. /dashboard/risk, /dashboard/investments)
 *              404
 ```
+The dashboard is **one product surface** reached at `/dashboard`, with its
+screens as nested routes beneath it. This stays within the intent of the locked
+three-route spec: marketing stays a single page, the product stays a single
+surface, and no product screen is promoted to a new top-level route.
 The marketing site is **one page**, not split into `/how-it-works`,
 `/intelligence`, etc. Section navigation uses in-page anchors
 (`#problem`, `#how-it-works`, `#intelligence`, `#platform`) with smooth

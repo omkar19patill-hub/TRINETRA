@@ -70,10 +70,21 @@ the lowercase placeholder shown in the root `README.md`'s illustrative tree.
 ## 3. Routes — FINAL
 
 ```text
-/              Marketing home (single scrolling page, anchor-nav sections)
-/dashboard     Placeholder route only — not implemented this phase
-*              404
+/                          Marketing home (single scrolling page, anchor-nav sections)
+/dashboard                 Product surface shell
+/dashboard/risk            Risk Analysis
+/dashboard/intelligence    Threat Intelligence
+/dashboard/financial       Financial Risk
+/dashboard/investments     Investment Optimization
+/dashboard/simulation      What-if Simulation
+/dashboard/actions         Action Center
+*                          404
 ```
+
+Dashboard screens are **nested routes under `/dashboard`**, not new top-level
+routes. Marketing remains one page; the product remains one surface.
+
+Continuous Monitoring is **deferred** — see `UI_UX.md` for the reason.
 
 No separate routes for `/how-it-works`, `/intelligence`, etc. Those are
 in-page anchors (`#problem`, `#how-it-works`, `#intelligence`, `#platform`)
@@ -202,9 +213,11 @@ real contract.
 ## 7. State
 
 - React local state: tabs, dropdowns, modals, the demo budget slider value.
-- TanStack Query: reserved for the dashboard phase once it talks to a real
-  API. Not needed for static/mock marketing content.
-- No global state store for this phase.
+- TanStack Query: **installed and approved** as the server-state layer for the
+  dashboard phase. Marketing content stays static and does not use it.
+- Recharts: approved but **not yet installed** — it is added when the first
+  chart-based screen is built, to avoid shipping an unused dependency.
+- No global state store.
 
 ## 8. Type Safety
 

@@ -178,3 +178,49 @@ for a live defect.
 ### Scope note
 
 Pre-existing on `main`. Surfaced during the API-contract investigation.
+
+---
+
+## 3. TypeScript strict mode is not enabled project-wide
+
+**Status:** Open — **deliberate deferral, not an oversight.**
+
+### What was found
+
+No `"strict": true` appears in any frontend TypeScript configuration. Verified
+across `Frontend/tsconfig.json`, `Frontend/tsconfig.app.json`,
+`Frontend/tsconfig.node.json` and `Frontend/.oxlintrc.json`.
+
+This contradicts two documents that assume strictness is already on:
+
+- `VIBECODING_RULES.md` — "Preserve TypeScript strictness. Avoid `any`."
+- `FRONTEND_ARCHITECTURE.md` §8 — "Avoid `any`."
+
+### Risk
+
+Without `strict`, `strictNullChecks` is off. A value that is `undefined` or
+`null` at runtime — for example an optional field absent from a backend response
+— will not be flagged at compile time. That risk grows as the frontend starts
+consuming real API data rather than local mock modules.
+
+### Why it is deferred
+
+Enabling `strict` is likely to surface errors across the existing 26 source
+files. Fixing those is a separate piece of work with its own review, and folding
+it into a feature phase would mix unrelated changes in one diff.
+
+It was explicitly deferred when the Phase 1 API client was built, with the
+decision recorded here so it is not lost.
+
+### Mitigation in the meantime
+
+All Phase 1 API-layer code (`src/lib/apiClient.ts`, `src/config/env.ts`,
+`src/types/api.ts`) was written to be strict-compatible: no `any`, `unknown`
+plus narrowing at the JSON boundary, and explicit optional/nullable members on
+response types. Turning `strict` on later should not require rewriting it.
+
+### Planned resolution
+
+Enable `strict` and fix the resulting errors as a standalone task **before**
+Phase 2 dashboard screens are built, so new screens are written against strict
+typing from the start rather than retrofitted.

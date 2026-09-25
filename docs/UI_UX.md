@@ -68,6 +68,33 @@ Investment Optimization → Set budget → Review exposure → Compare controls
 → Run optimization → Review cost vs. risk reduction → Inspect rationale
 ```
 
+### Dashboard screen scope — DECIDED
+
+Seven screens are in scope for the dashboard phase, all nested under
+`/dashboard` (see `FRONTEND_ARCHITECTURE.md` §3):
+
+| Screen | Primary backend endpoints |
+|---|---|
+| Dashboard (overview) | `POST /optimization/run`, `GET /orchestration/assets` |
+| Threat Intelligence | `GET /vulnerabilities`, `GET /vulnerabilities/{cve_id}/enriched` |
+| Risk Analysis | `POST /risk/calculate`, `POST /ml/predict` |
+| Financial Risk | `POST /financial-crq/calculate`, `POST /monte-carlo/simulate` |
+| Investment Optimization | `POST /optimization/run`, `GET /controls` |
+| What-if Simulation | `POST /optimization/before-after`, `GET /decision/{id}/marginal-budget` |
+| Action Center | `GET /decision/{id}/alternatives`, `/opportunity-cost`, `/explanation` |
+
+**Action Center** and **What-if Simulation** are in scope because both map to
+stages the product pipeline already claims: Action Center is the final
+"Security Action" stage in `FRONTEND_CONTEXT.md` §1, and What-if Simulation is
+the promise the marketing page already makes ("Move the budget. Watch the risk
+number change.").
+
+**Continuous Monitoring is deferred.** It has no anchor in the documented
+pipeline, it is the most stateful surface (time-series and polling), and it
+depends on `POST /reoptimize` operating against optimization IDs held in an
+in-memory store that does not survive a backend restart. It will be
+reconsidered once backend persistence is decided.
+
 ## 5. Marketing Page Section Order — FINAL
 
 ```text
