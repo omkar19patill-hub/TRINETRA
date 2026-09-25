@@ -236,6 +236,9 @@ venv/
 # Environment / secrets
 .env
 .env.*
+# ...but .env.example documents the required variables and carries no secrets,
+# so it must stay committable. Without this, `.env.*` silently swallows it.
+!.env.example
 
 # macOS
 .DS_Store
