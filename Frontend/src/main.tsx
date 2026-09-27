@@ -7,6 +7,8 @@ import Home from './pages/marketing/Home'
 import DashboardLayout from './layouts/DashboardLayout'
 import Dashboard from './pages/dashboard/Dashboard'
 import DashboardPlaceholder from './pages/dashboard/Placeholder'
+import InvestmentOptimization from './pages/dashboard/InvestmentOptimization'
+import FinancialRisk from './pages/dashboard/FinancialRisk'
 import NotFound from './pages/NotFound'
 import './styles/globals.css'
 
@@ -31,8 +33,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route index element={<Dashboard />} />
             <Route path="intelligence" element={<DashboardPlaceholder />} />
             <Route path="risk" element={<DashboardPlaceholder />} />
-            <Route path="financial" element={<DashboardPlaceholder />} />
-            <Route path="investments" element={<DashboardPlaceholder />} />
+            <Route path="financial" element={<FinancialRisk />} />
+            <Route path="investments" element={<InvestmentOptimization />} />
             <Route path="simulation" element={<DashboardPlaceholder />} />
             <Route path="actions" element={<DashboardPlaceholder />} />
           </Route>
