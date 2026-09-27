@@ -231,6 +231,65 @@ export interface OptimizationSummary {
 }
 
 /* ------------------------------------------------------------------ *
+ * GET /vulnerabilities
+ * ------------------------------------------------------------------ */
+
+export interface VulnerabilityListItem {
+  cve_id: string
+  cvss: number
+  severity: string
+  epss: number
+  kev: boolean
+  known_ransomware_use: boolean
+  ingested_at: string
+  last_modified_at: string
+}
+
+export interface VulnerabilityListResponse {
+  total: number
+  page: number
+  page_size: number
+  vulnerabilities: VulnerabilityListItem[]
+}
+
+/* ------------------------------------------------------------------ *
+ * GET /vulnerabilities/{cve_id}/enriched
+ * ------------------------------------------------------------------ */
+
+/** Where each intelligence signal came from. */
+export interface VulnerabilitySourceMetadata {
+  cvss_source?: string
+  epss_source?: string
+  kev_source?: string
+  sources?: string[]
+  source_statuses?: Record<string, string>
+}
+
+/** When each upstream feed was last seen. */
+export interface VulnerabilityDataFreshness {
+  nvd_last_modified?: string
+  epss_date?: string
+  kev_checked_at?: string
+  source_updated_at?: string
+  ingested_at?: string
+}
+
+export interface EnrichedVulnerability {
+  cve_id: string
+  cvss: number
+  cvss_version: string
+  cvss_vector: string
+  epss: number
+  epss_percentile: number
+  kev: boolean
+  known_ransomware_use: boolean
+  severity: string
+  description: string
+  source_metadata?: VulnerabilitySourceMetadata
+  data_freshness?: VulnerabilityDataFreshness
+}
+
+/* ------------------------------------------------------------------ *
  * Provenance
  * ------------------------------------------------------------------ */
 
