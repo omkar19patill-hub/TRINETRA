@@ -14,7 +14,9 @@ export function Hero() {
               SIH26105 &middot; Continuous Cyber Risk Quantification
             </div>
 
-            <h1 className="text-[42px] sm:text-[54px] lg:text-[60px] font-semibold text-t3 leading-[1.02] tracking-tight"></h1>
+            <h1 className="text-[42px] sm:text-[54px] lg:text-[60px] font-semibold text-t3 leading-[1.02] tracking-tight">
+              See risk before<br />it strikes.
+            </h1>
 
             <p className="mt-6 text-[17px] leading-relaxed text-t1 max-w-[480px]">
               Trinetra turns raw vulnerability data into a live, rupee-denominated risk number —
