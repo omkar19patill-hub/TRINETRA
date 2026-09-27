@@ -181,6 +181,56 @@ export interface AlternativesResponse {
 }
 
 /* ------------------------------------------------------------------ *
+ * GET /orchestration/assets
+ * ------------------------------------------------------------------ */
+
+/** Current tracked state of one asset, as held by the orchestration layer. */
+export interface AssetState {
+  asset_id: string
+  name: string
+  cve_id: string
+  cvss: number
+  epss: number
+  kev: boolean
+  internet_exposed: boolean
+  criticality: Criticality
+  is_patched: boolean
+  revenue_loss_per_hour: number
+  downtime_hours: number
+  incident_response_cost: number
+  recovery_cost: number
+  regulatory_fine_estimate: number
+  customer_impact_cost: number
+  budget_limit: number
+}
+
+/* ------------------------------------------------------------------ *
+ * GET /decision/optimizations
+ * ------------------------------------------------------------------ */
+
+/**
+ * A stored optimization scenario.
+ *
+ * On a cold backend this endpoint returns BENCHMARK scenarios
+ * (OPT-BENCHMARK-001, OPT-ENTERPRISE-001) because the store falls back to
+ * demonstration data when no real optimization has been run. Always filter with
+ * partitionByProvenance() before treating any entry as a real result.
+ */
+export interface OptimizationSummary {
+  optimization_id: string
+  title: string
+  baseline_risk: number
+  budget_limit: number
+  selected_portfolio_id: string
+  created_at: string
+  currency?: string
+  data_source?: string
+  is_benchmark?: boolean
+  model_version?: string
+  assessment_id?: string | null
+}
+
+/* ------------------------------------------------------------------ *
  * Provenance
  * ------------------------------------------------------------------ */
 
