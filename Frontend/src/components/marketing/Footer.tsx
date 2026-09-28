@@ -8,7 +8,9 @@ export function Footer() {
               <img src="/images/symbol.png" alt="" className="h-6 w-6 object-contain" />
               <span className="font-semibold text-t3 text-[14px]">TRINETRA</span>
             </div>
-            <p className="mt-4 text-[13px] text-t1 leading-relaxed max-w-[220px]"></p>
+            <p className="mt-4 text-[13px] text-t1 leading-relaxed max-w-[220px]">
+              See risk before it strikes.
+            </p>
           </div>
 
           <div>

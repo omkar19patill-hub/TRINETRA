@@ -13,7 +13,7 @@ export function ProblemStats() {
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card-shell rounded-md p-5">
             <div className="text-[26px] font-semibold text-t3 tabular-nums">29,44,248</div>
             <div className="mt-2 text-[13px] text-t1 leading-snug">Cyber incidents in India, 2025 — up from 20,41,360 in 2024</div>

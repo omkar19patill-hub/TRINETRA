@@ -12,7 +12,7 @@ export function HowItWorks() {
           </p>
         </div>
 
-        <div className="mt-16 grid md:grid-cols-5 gap-px bg-bd/60 rounded-md overflow-hidden border border-bd/60">
+        <div className="mt-16 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-bd/60 rounded-md overflow-hidden border border-bd/60">
           <div className="bg-black p-6 flex flex-col gap-3">
             <span className="text-[11px] text-t1">01</span>
             <h3 className="text-[15px] font-medium text-t3">Threat Intelligence</h3>
