@@ -488,3 +488,24 @@ export interface AssessmentBatchResponse {
   snapshot: RiskSnapshotResponse
 }
 
+export interface RiskChangeResponse {
+  has_history: boolean
+  has_baseline: boolean
+  current_snapshot?: RiskSnapshotResponse | null
+  previous_snapshot?: RiskSnapshotResponse | null
+  previous_exposure?: number | null
+  current_exposure?: number | null
+  absolute_change?: number | null
+  percentage_change?: number | null
+  previous_average_risk?: number | null
+  current_average_risk?: number | null
+  average_risk_change?: number | null
+  previous_critical_assets?: number | null
+  current_critical_assets?: number | null
+  critical_assets_change?: number | null
+  previous_high_risk_assets?: number | null
+  current_high_risk_assets?: number | null
+  high_risk_assets_change?: number | null
+}
+
+

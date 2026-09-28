@@ -15,12 +15,15 @@ from risk.schemas import (
     AssessmentBatchCreate,
     AssessmentBatchResponse,
     RiskSnapshotResponse,
+    RiskChangeResponse,
 )
 from risk.engine import calculate_risk
 from risk.constants import MODEL_VERSION
 from risk.storage import AssessmentStorage, get_assessment_storage
+from risk.change_detector import detect_latest_risk_change
 
 router = APIRouter(prefix="/risk", tags=["Risk Engine"])
+
 
 
 
@@ -112,6 +115,25 @@ def get_latest_risk_snapshot_endpoint(
 
 
 @router.get(
+    "/change",
+    response_model=RiskChangeResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get run-over-run risk change intelligence",
+    description="""
+Compares the latest persisted portfolio risk snapshot against the immediately preceding snapshot.
+Explains run-over-run changes in total financial exposure (absolute and percentage), average risk score,
+critical asset counts, and high-risk asset counts.
+""",
+)
+def get_risk_change_endpoint(
+    storage: AssessmentStorage = Depends(get_assessment_storage),
+) -> RiskChangeResponse:
+    """Retrieve run-over-run risk change metrics between latest and previous snapshots."""
+    return detect_latest_risk_change(storage)
+
+
+@router.get(
+
 
     "/health",
     response_model=HealthResponse,

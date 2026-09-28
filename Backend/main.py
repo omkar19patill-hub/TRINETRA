@@ -266,7 +266,9 @@ def root_info():
             "risk_assessment_batch": "/risk/assessment-batch",
             "risk_history": "/risk/history",
             "risk_latest": "/risk/latest",
+            "risk_change": "/risk/change",
             "risk_health": "/risk/health",
+
 
             "financial_crq_calculate": "/financial-crq/calculate",
             "financial_crq_health": "/financial-crq/health",

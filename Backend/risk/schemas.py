@@ -292,4 +292,38 @@ class AssessmentBatchResponse(BaseModel):
     snapshot: RiskSnapshotResponse = Field(description="Computed portfolio risk snapshot")
 
 
+class RiskChangeResponse(BaseModel):
+    """Run-over-run risk change intelligence comparing latest snapshot to previous snapshot."""
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    has_history: bool = Field(description="True if at least one snapshot exists in history")
+    has_baseline: bool = Field(description="True if an immediately preceding snapshot exists for comparison")
+    current_snapshot: Optional[RiskSnapshotResponse] = Field(default=None, description="The most recent risk snapshot")
+    previous_snapshot: Optional[RiskSnapshotResponse] = Field(default=None, description="The immediately preceding risk snapshot")
+
+    # Financial Exposure Metrics
+    previous_exposure: Optional[float] = Field(default=None, description="Previous total financial exposure")
+    current_exposure: Optional[float] = Field(default=None, description="Current total financial exposure")
+    absolute_change: Optional[float] = Field(default=None, description="Absolute change in exposure (current - previous)")
+    percentage_change: Optional[float] = Field(default=None, description="Percentage change in exposure. None if previous is 0 or missing")
+
+    # Average Risk Score Metrics
+    previous_average_risk: Optional[float] = Field(default=None, description="Previous average deterministic risk score")
+    current_average_risk: Optional[float] = Field(default=None, description="Current average deterministic risk score")
+    average_risk_change: Optional[float] = Field(default=None, description="Change in average risk (current - previous)")
+
+    # Critical Assets Metrics
+    previous_critical_assets: Optional[int] = Field(default=None, description="Previous count of critical-risk assets")
+    current_critical_assets: Optional[int] = Field(default=None, description="Current count of critical-risk assets")
+    critical_assets_change: Optional[int] = Field(default=None, description="Change in critical assets count (current - previous)")
+
+    # High Risk Assets Metrics
+    previous_high_risk_assets: Optional[int] = Field(default=None, description="Previous count of high-risk assets")
+    current_high_risk_assets: Optional[int] = Field(default=None, description="Current count of high-risk assets")
+    high_risk_assets_change: Optional[int] = Field(default=None, description="Change in high-risk assets count (current - previous)")
+
+
+
 

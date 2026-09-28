@@ -28,7 +28,9 @@ from .schemas import (
     AssessmentBatchCreate,
     RiskSnapshotResponse,
     AssessmentBatchResponse,
+    RiskChangeResponse,
 )
+
 from .scoring import (
     normalize_cvss,
     calculate_likelihood,
@@ -38,12 +40,14 @@ from .scoring import (
 )
 from .drivers import generate_risk_drivers
 from .engine import calculate_risk
+from .change_detector import compute_risk_change, detect_latest_risk_change
 from .storage import (
     AssessmentStorage,
     get_assessment_storage,
     set_assessment_storage,
     init_assessment_storage,
 )
+
 
 __all__ = [
     "MODEL_VERSION",
@@ -65,7 +69,9 @@ __all__ = [
     "AssessmentBatchCreate",
     "RiskSnapshotResponse",
     "AssessmentBatchResponse",
+    "RiskChangeResponse",
     "AssessmentStorage",
+
     "get_assessment_storage",
     "set_assessment_storage",
     "init_assessment_storage",
@@ -76,6 +82,9 @@ __all__ = [
     "get_risk_level",
     "generate_risk_drivers",
     "calculate_risk",
+    "compute_risk_change",
+    "detect_latest_risk_change",
 ]
+
 
 

@@ -32,7 +32,7 @@
  */
 
 import { env } from '../config/env'
-import type { ProvenanceMarked, RiskSnapshotResponse } from '../types/api'
+import type { ProvenanceMarked, RiskChangeResponse, RiskSnapshotResponse } from '../types/api'
 
 /** A single field-level validation problem, parsed from a 422 response. */
 export interface FieldError {
@@ -248,3 +248,11 @@ export async function getLatestRiskSnapshot(): Promise<RiskSnapshotResponse | nu
     throw error
   }
 }
+
+/**
+ * Fetch run-over-run risk change intelligence comparing latest snapshot to previous snapshot.
+ */
+export async function getRiskChange(): Promise<RiskChangeResponse> {
+  return api.get<RiskChangeResponse>('/risk/change')
+}
+

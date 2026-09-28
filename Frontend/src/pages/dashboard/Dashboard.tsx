@@ -1,14 +1,16 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card, CardContent } from '../../components/ui/Card'
 import { MetricCard } from '../../components/ui/MetricCard'
-import { partitionByProvenance } from '../../lib/apiClient'
+import { getRiskChange, partitionByProvenance } from '../../lib/apiClient'
 import { formatInr, formatScore, pickBudget } from '../../components/dashboard/format'
 import { ErrorPanel, LoadingCard } from '../../components/dashboard/states'
 import { useAssets, useOptimizations, useRunOptimization } from '../../hooks/useOptimization'
-import type { OptimizationRunResponse } from '../../types/api'
+import type { OptimizationRunResponse, RiskChangeResponse } from '../../types/api'
+
 
 /* ------------------------------------------------------------------ *
  * Benchmark notice
@@ -168,6 +170,106 @@ function ResultView(props: { result: OptimizationRunResponse; isDemoData: boolea
 }
 
 /* ------------------------------------------------------------------ *
+ * Run-over-Run Risk Change (Phase 3)
+ * ------------------------------------------------------------------ */
+
+function RiskChangeSection() {
+  const { data: change } = useQuery<RiskChangeResponse>({
+    queryKey: ['risk-change'],
+    queryFn: getRiskChange,
+  })
+
+  if (!change || !change.has_history) {
+    return null
+  }
+
+  if (!change.has_baseline) {
+    return (
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-tertiary">
+          Baseline Risk Assessment
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MetricCard
+            label="Current Exposure"
+            value={formatInr(change.current_exposure ?? 0)}
+            context="Baseline Expected Annual Loss (EAL)"
+            source="Assessment Storage"
+          />
+          <MetricCard
+            label="Average Risk"
+            value={formatScore(change.current_average_risk ?? 0)}
+            context={`${change.current_critical_assets ?? 0} critical, ${change.current_high_risk_assets ?? 0} high-risk assets`}
+            source="Assessment Storage"
+          />
+          <MetricCard
+            label="Historical Comparison"
+            value="Baseline Set"
+            context="Run another bulk assessment to compute run-over-run risk change."
+            source="Assessment Storage"
+          />
+        </div>
+      </section>
+    )
+  }
+
+  const absChange = change.absolute_change ?? 0
+  const isExpIncreased = absChange > 0
+  const pctStr =
+    change.percentage_change !== null && change.percentage_change !== undefined
+      ? `${change.percentage_change > 0 ? '+' : ''}${change.percentage_change.toFixed(1)}%`
+      : 'N/A'
+
+  const avgDiff = change.average_risk_change ?? 0
+  const avgDiffStr = `${avgDiff > 0 ? '+' : ''}${avgDiff.toFixed(1)} pts`
+
+  const critDiff = change.critical_assets_change ?? 0
+  const critDiffStr = `${critDiff > 0 ? '+' : ''}${critDiff}`
+
+  const highDiff = change.high_risk_assets_change ?? 0
+  const highDiffStr = `${highDiff > 0 ? '+' : ''}${highDiff}`
+
+  return (
+    <section className="mb-8">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">
+          Run-over-Run Risk Change
+        </h2>
+        <span className="text-xs text-text-inverse">
+          Latest vs Previous Assessment Snapshot
+        </span>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="Current Exposure"
+          value={formatInr(change.current_exposure ?? 0)}
+          context={`Previous: ${formatInr(change.previous_exposure ?? 0)}`}
+          source="Assessment Storage"
+        />
+        <MetricCard
+          label="Absolute Change"
+          value={`${isExpIncreased ? '+' : ''}${formatInr(absChange)}`}
+          context={`Percentage: ${pctStr}`}
+          source="Assessment Storage"
+        />
+        <MetricCard
+          label="Average Risk Change"
+          value={avgDiffStr}
+          context={`From ${formatScore(change.previous_average_risk ?? 0)} to ${formatScore(change.current_average_risk ?? 0)}`}
+          source="Assessment Storage"
+        />
+        <MetricCard
+          label="Asset Tier Shifts"
+          value={`Crit: ${critDiffStr} | High: ${highDiffStr}`}
+          context={`Critical: ${change.previous_critical_assets ?? 0} → ${change.current_critical_assets ?? 0}, High: ${change.previous_high_risk_assets ?? 0} → ${change.current_high_risk_assets ?? 0}`}
+          source="Assessment Storage"
+        />
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ *
  * Screen
  * ------------------------------------------------------------------ */
 
@@ -242,6 +344,7 @@ export default function Dashboard() {
     return (
       <div>
         {heading}
+        <RiskChangeSection />
         <ResultView result={result} isDemoData={result.is_benchmark === true} />
       </div>
     )
@@ -253,6 +356,7 @@ export default function Dashboard() {
   return (
     <div>
       {heading}
+      <RiskChangeSection />
       <RunPrompt
         title={
           hasRealData
@@ -277,3 +381,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
