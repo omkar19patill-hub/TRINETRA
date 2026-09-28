@@ -32,7 +32,7 @@
  */
 
 import { env } from '../config/env'
-import type { ProvenanceMarked } from '../types/api'
+import type { ProvenanceMarked, RiskSnapshotResponse } from '../types/api'
 
 /** A single field-level validation problem, parsed from a 422 response. */
 export interface FieldError {
@@ -216,4 +216,35 @@ export function partitionByProvenance<T extends ProvenanceMarked>(
     else real.push(item)
   }
   return { real, benchmark }
+}
+
+/* ------------------------------------------------------------------ *
+ * Risk History & Latest Snapshot API methods (Phase 2)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Fetch persisted risk snapshots in chronological order.
+ *
+ * @param limit Maximum number of snapshots to retrieve (default: 50).
+ * @param order 'asc' for chronological (oldest first), 'desc' for reverse chronological.
+ */
+export async function getRiskHistory(
+  limit: number = 50,
+  order: 'asc' | 'desc' = 'asc',
+): Promise<RiskSnapshotResponse[]> {
+  return api.get<RiskSnapshotResponse[]>('/risk/history', { limit, order })
+}
+
+/**
+ * Fetch the latest persisted risk snapshot, or null if no assessment has been run yet.
+ */
+export async function getLatestRiskSnapshot(): Promise<RiskSnapshotResponse | null> {
+  try {
+    return await api.get<RiskSnapshotResponse>('/risk/latest')
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null
+    }
+    throw error
+  }
 }

@@ -24,6 +24,10 @@ from .schemas import (
     ModelInfo,
     CriticalityEnum,
     HealthResponse,
+    AssessmentResultItem,
+    AssessmentBatchCreate,
+    RiskSnapshotResponse,
+    AssessmentBatchResponse,
 )
 from .scoring import (
     normalize_cvss,
@@ -34,6 +38,12 @@ from .scoring import (
 )
 from .drivers import generate_risk_drivers
 from .engine import calculate_risk
+from .storage import (
+    AssessmentStorage,
+    get_assessment_storage,
+    set_assessment_storage,
+    init_assessment_storage,
+)
 
 __all__ = [
     "MODEL_VERSION",
@@ -51,6 +61,14 @@ __all__ = [
     "ModelInfo",
     "CriticalityEnum",
     "HealthResponse",
+    "AssessmentResultItem",
+    "AssessmentBatchCreate",
+    "RiskSnapshotResponse",
+    "AssessmentBatchResponse",
+    "AssessmentStorage",
+    "get_assessment_storage",
+    "set_assessment_storage",
+    "init_assessment_storage",
     "normalize_cvss",
     "calculate_likelihood",
     "calculate_impact",
@@ -59,4 +77,5 @@ __all__ = [
     "generate_risk_drivers",
     "calculate_risk",
 ]
+
 

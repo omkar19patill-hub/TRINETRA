@@ -9,10 +9,12 @@ import {
   REQUIRED_HEADERS,
   aggregate,
   parseCsv,
+  persistAssessmentBatch,
   runBatch,
   validateRows,
 } from '../../lib/bulkAssessment'
 import type { InvalidRow, RowResult, RowSuccess, ValidRow } from '../../lib/bulkAssessment'
+import type { AssessmentBatchResponse } from '../../types/api'
 
 type SortKey = 'asset_id' | 'risk_score' | 'expected_annual_loss'
 type SortDirection = 'asc' | 'desc'
@@ -32,12 +34,64 @@ function severityVariant(level: string): 'critical' | 'high' | 'medium' | 'low' 
   }
 }
 
-/** Required by scope: batch results are never persisted. */
-function NotSavedNotice() {
+/** Displays persistence and snapshot status for the batch. */
+function PersistenceNotice(props: {
+  batch: AssessmentBatchResponse | null
+  persistError: string | null
+  isRunning: boolean
+  hasResults: boolean
+}) {
+  const { batch, persistError, isRunning, hasResults } = props
+
+  if (isRunning) {
+    return (
+      <div className="mb-6 rounded-sm border border-border-default bg-surface-strong px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+          Processing assessment & calculating financial exposure...
+        </p>
+      </div>
+    )
+  }
+
+  if (batch) {
+    return (
+      <div className="mb-6 rounded-sm border border-risk-low/30 bg-risk-low/10 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-risk-low">
+            Assessment persisted &bull; Batch {batch.batch_id} &bull; Snapshot #{batch.snapshot.id}
+          </p>
+          <span className="font-mono text-xs text-text-primary">
+            {new Date(batch.created_at).toLocaleString()}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (persistError) {
+    return (
+      <div className="mb-6 rounded-sm border border-risk-high/30 bg-risk-high/10 px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-risk-high">
+          {persistError}
+        </p>
+      </div>
+    )
+  }
+
+  if (hasResults) {
+    return (
+      <div className="mb-6 rounded-sm border border-border-default bg-surface-strong px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+          Batch completed &bull; Results stored in persistent history.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-6 rounded-sm border border-border-default bg-surface-strong px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
-        Live batch run — not saved. Re-upload to re-run.
+        Persistent Batch Assessment &bull; Assessment batches and portfolio risk snapshots are saved to database.
       </p>
     </div>
   )
@@ -238,6 +292,8 @@ export default function BulkAssessment() {
   const [results, setResults] = useState<RowResult[] | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [isRunning, setIsRunning] = useState(false)
+  const [persistedBatch, setPersistedBatch] = useState<AssessmentBatchResponse | null>(null)
+  const [persistError, setPersistError] = useState<string | null>(null)
 
   function reset() {
     setParseError(null)
@@ -246,6 +302,8 @@ export default function BulkAssessment() {
     setPending([])
     setResults(null)
     setProgress(null)
+    setPersistedBatch(null)
+    setPersistError(null)
   }
 
   async function handleFile(file: File) {
@@ -280,9 +338,31 @@ export default function BulkAssessment() {
     if (pending.length === 0) return
 
     setIsRunning(true)
+    setPersistedBatch(null)
+    setPersistError(null)
     setProgress({ done: 0, total: pending.length })
     const batch = await runBatch(pending, (done, total) => setProgress({ done, total }))
     setResults(batch)
+
+    // Persist successful batch results
+    const successes = batch.filter((r): r is RowSuccess => r.status === 'ok')
+    if (successes.length > 0) {
+      try {
+        const saved = await persistAssessmentBatch(
+          fileName || 'bulk_assessment.csv',
+          pending.length,
+          batch,
+        )
+        if (saved) {
+          setPersistedBatch(saved)
+        } else {
+          setPersistError('Batch completed, but could not be saved to history.')
+        }
+      } catch {
+        setPersistError('Failed to persist assessment batch to database.')
+      }
+    }
+
     setIsRunning(false)
   }
 
@@ -303,7 +383,12 @@ export default function BulkAssessment() {
         </p>
       </header>
 
-      <NotSavedNotice />
+      <PersistenceNotice
+        batch={persistedBatch}
+        persistError={persistError}
+        isRunning={isRunning}
+        hasResults={results !== null}
+      />
 
       <Card className="mb-6">
         <CardContent className="p-6">

@@ -8,7 +8,7 @@ export interface MetricCardProps {
   source?: string
   isDemoData?: boolean
   className?: string
-}
+  }
 
 export function MetricCard({
   label,

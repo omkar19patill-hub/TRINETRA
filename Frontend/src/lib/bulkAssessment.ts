@@ -11,6 +11,8 @@
 import { api } from './apiClient'
 import { ApiError } from './apiClient'
 import type {
+  AssessmentBatchCreate,
+  AssessmentBatchResponse,
   Criticality,
   FinancialCRQRequest,
   FinancialCRQResult,
@@ -408,3 +410,57 @@ export function aggregate(results: RowResult[]): BatchAggregate {
     topByExposure,
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Persistence (Phase 1)
+ * ------------------------------------------------------------------ */
+
+export async function persistAssessmentBatch(
+  source: string,
+  totalRows: number,
+  results: RowResult[],
+  riskAppetite?: number | null,
+): Promise<AssessmentBatchResponse | null> {
+  const successes = results.filter((result): result is RowSuccess => result.status === 'ok')
+  const failed = results.length - successes.length
+
+  const payload: AssessmentBatchCreate = {
+    source: source || 'bulk_assessment_csv',
+    total_rows: totalRows,
+    successful_rows: successes.length,
+    failed_rows: failed,
+    status: 'COMPLETED',
+    risk_appetite: riskAppetite ?? null,
+    results: successes.map((row) => ({
+      asset_id: row.assetId,
+      asset_name: row.assetId,
+      cve_id: row.cveId,
+      criticality: row.criticality,
+      risk_score: row.risk.risk_score,
+      financial_exposure: row.financial.expected_annual_loss,
+      assessment_data: {
+        lineNumber: row.lineNumber,
+        likelihood: row.risk.likelihood,
+        impact: row.risk.impact,
+        risk_level: row.risk.risk_level,
+        risk_drivers: row.risk.risk_drivers,
+        calculation: row.risk.calculation,
+        downtime_loss: row.financial.downtime_loss,
+        incident_response_cost: row.financial.incident_response_cost,
+        recovery_cost: row.financial.recovery_cost,
+        regulatory_legal_cost: row.financial.regulatory_legal_cost,
+        customer_business_impact: row.financial.customer_business_impact,
+        total_loss_magnitude: row.financial.total_loss_magnitude,
+        annual_event_frequency: row.financial.annual_event_frequency,
+      },
+    })),
+  }
+
+  try {
+    return await api.post<AssessmentBatchResponse>('/risk/assessment-batch', payload)
+  } catch (error) {
+    console.error('Failed to persist assessment batch:', error)
+    return null
+  }
+}
+

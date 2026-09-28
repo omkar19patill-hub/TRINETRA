@@ -7,7 +7,7 @@ calculation structures.
 """
 
 from enum import Enum
-from typing import Annotated, List
+from typing import Annotated, Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -224,4 +224,72 @@ class HealthResponse(BaseModel):
 # Cross-module compatibility aliases
 RiskInput = RiskCalculationRequest
 RiskResult = RiskCalculationResponse
+
+
+class AssessmentResultItem(BaseModel):
+    """Individual asset assessment result within a batch."""
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+    asset_id: str = Field(description="Unique asset identifier")
+    asset_name: Optional[str] = Field(default=None, description="Human readable asset name")
+    cve_id: Optional[str] = Field(default=None, description="Primary CVE evaluated")
+    criticality: Optional[str] = Field(default=None, description="Business criticality tier")
+    risk_score: float = Field(ge=0.0, le=100.0, description="Calculated deterministic risk score")
+    financial_exposure: float = Field(ge=0.0, description="Calculated expected annual loss (EAL) in INR")
+    assessment_data: dict[str, Any] = Field(default_factory=dict, description="Full serializable payload of risk & financial computation")
+
+
+class AssessmentBatchCreate(BaseModel):
+    """Input contract for persisting an assessment batch from Bulk Assessment."""
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+    batch_id: Optional[str] = Field(default=None, description="Optional custom batch ID")
+    source: str = Field(default="bulk_assessment_csv", description="Data source identifier (e.g. filename or channel)")
+    total_rows: int = Field(ge=0, description="Total rows parsed in batch")
+    successful_rows: int = Field(ge=0, description="Successfully processed rows")
+    failed_rows: int = Field(default=0, ge=0, description="Failed rows in batch")
+    status: str = Field(default="COMPLETED", description="Batch execution status")
+    results: List[AssessmentResultItem] = Field(default_factory=list, description="List of successful asset assessments")
+    risk_appetite: Optional[float] = Field(default=None, description="Optional organizational risk appetite threshold")
+
+
+class RiskSnapshotResponse(BaseModel):
+    """Immutable portfolio risk snapshot computed for an assessment batch."""
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    id: str = Field(description="Unique snapshot identifier")
+    batch_id: Optional[str] = Field(default=None, description="Associated batch identifier")
+    timestamp: str = Field(description="ISO timestamp of snapshot capture")
+    total_exposure: float = Field(description="Aggregate Expected Annual Loss (EAL) across assessed assets")
+    average_risk: float = Field(description="Mean deterministic risk score [0 - 100]")
+    critical_assets: int = Field(description="Number of assets classified as Critical risk")
+    high_risk_assets: int = Field(description="Number of assets classified as High risk")
+    risk_appetite: Optional[float] = Field(default=None, description="Configured risk appetite threshold at time of snapshot")
+    created_at: str = Field(description="Snapshot creation timestamp")
+
+
+class AssessmentBatchResponse(BaseModel):
+    """Output contract returned upon successfully persisting an assessment batch."""
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    batch_id: str = Field(description="Persisted batch identifier")
+    created_at: str = Field(description="Batch creation timestamp")
+    source: str = Field(description="Source identifier")
+    total_rows: int = Field(description="Total rows in batch")
+    successful_rows: int = Field(description="Successful rows")
+    failed_rows: int = Field(description="Failed rows")
+    status: str = Field(description="Batch status")
+    snapshot: RiskSnapshotResponse = Field(description="Computed portfolio risk snapshot")
+
+
 

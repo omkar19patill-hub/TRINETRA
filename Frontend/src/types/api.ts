@@ -439,3 +439,52 @@ export interface ProvenanceMarked {
   is_benchmark?: boolean
   data_source?: string
 }
+
+/* ------------------------------------------------------------------ *
+ * POST /risk/assessment-batch
+ * ------------------------------------------------------------------ */
+
+export interface AssessmentResultItem {
+  asset_id: string
+  asset_name?: string | null
+  risk_score: number
+  financial_exposure: number
+  cve_id?: string | null
+  criticality?: Criticality | null
+  assessment_data?: Record<string, unknown>
+}
+
+export interface AssessmentBatchCreate {
+  batch_id?: string
+  source?: string
+  total_rows: number
+  successful_rows: number
+  failed_rows: number
+  status?: string
+  results: AssessmentResultItem[]
+  risk_appetite?: number | null
+}
+
+export interface RiskSnapshotResponse {
+  id: string
+  batch_id?: string | null
+  timestamp: string
+  total_exposure: number
+  average_risk: number
+  critical_assets: number
+  high_risk_assets: number
+  risk_appetite?: number | null
+  created_at: string
+}
+
+export interface AssessmentBatchResponse {
+  batch_id: string
+  created_at: string
+  source: string
+  total_rows: number
+  successful_rows: number
+  failed_rows: number
+  status: string
+  snapshot: RiskSnapshotResponse
+}
+

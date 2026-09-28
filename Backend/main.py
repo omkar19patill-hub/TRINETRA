@@ -51,6 +51,7 @@ from orchestration.routes import router as orchestration_router
 from controls import CONTROLS_MODEL_VERSION, router as controls_router
 from optimization import OPTIMIZATION_MODEL_VERSION, router as optimization_router
 from risk.constants import MODEL_VERSION as RISK_MODEL_VERSION
+from risk.storage import init_assessment_storage
 from schemas.vulnerability import (
     DataFreshness,
     EPSSNormalized,
@@ -171,6 +172,7 @@ async def lifespan(app: FastAPI):
     """Application startup and shutdown event management."""
     logger.info("[Main] Initializing TRINETRA Unified Cyber Risk Engine & Intelligence Layer...")
     seed_benchmark_vulnerabilities(service_instance)
+    init_assessment_storage()
 
     # Start background scheduler if enabled
     scheduler_instance.start()
@@ -261,7 +263,11 @@ def root_info():
 
             "optimization_before_after": "/optimization/before-after",
             "risk_calculate": "/risk/calculate",
+            "risk_assessment_batch": "/risk/assessment-batch",
+            "risk_history": "/risk/history",
+            "risk_latest": "/risk/latest",
             "risk_health": "/risk/health",
+
             "financial_crq_calculate": "/financial-crq/calculate",
             "financial_crq_health": "/financial-crq/health",
             "monte_carlo_simulate": "/monte-carlo/simulate",
