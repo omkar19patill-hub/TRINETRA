@@ -4,26 +4,25 @@ import { cn } from '../lib/utils'
 /**
  * Shell for the /dashboard product surface.
  *
- * All seven in-scope screens are listed (see docs/UI_UX.md), but only the
- * overview is built. The rest route to a placeholder rather than a dead link.
- * Continuous Monitoring is deliberately absent: it is deferred pending a
- * backend persistence decision.
+ * All seven in-scope screens are listed (see docs/UI_UX.md) and all are now
+ * implemented. Continuous Monitoring is deliberately absent: it is deferred
+ * pending a backend persistence decision.
  */
 
 interface NavItem {
   to: string
   label: string
-  built: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', label: 'Overview', built: true },
-  { to: '/dashboard/intelligence', label: 'Threat Intelligence', built: false },
-  { to: '/dashboard/risk', label: 'Risk Analysis', built: false },
-  { to: '/dashboard/financial', label: 'Financial Risk', built: false },
-  { to: '/dashboard/investments', label: 'Investment Optimization', built: false },
-  { to: '/dashboard/simulation', label: 'What-if Simulation', built: false },
-  { to: '/dashboard/actions', label: 'Action Center', built: false },
+  { to: '/dashboard', label: 'Overview' },
+  { to: '/dashboard/intelligence', label: 'Threat Intelligence' },
+  { to: '/dashboard/risk', label: 'Risk Analysis' },
+  { to: '/dashboard/bulk-assessment', label: 'Bulk Assessment' },
+  { to: '/dashboard/financial', label: 'Financial Risk' },
+  { to: '/dashboard/investments', label: 'Investment Optimization' },
+  { to: '/dashboard/simulation', label: 'What-if Simulation' },
+  { to: '/dashboard/actions', label: 'Action Center' },
 ]
 
 export default function DashboardLayout() {
@@ -49,7 +48,7 @@ export default function DashboardLayout() {
                     end={item.to === '/dashboard'}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors',
+                        'flex items-center rounded-sm px-3 py-2 text-sm transition-colors',
                         isActive
                           ? 'bg-surface-strong text-text-tertiary'
                           : 'text-text-primary hover:bg-surface-strong hover:text-text-secondary',
@@ -57,11 +56,6 @@ export default function DashboardLayout() {
                     }
                   >
                     <span>{item.label}</span>
-                    {item.built ? null : (
-                      <span className="text-[10px] uppercase tracking-wider text-text-inverse">
-                        Soon
-                      </span>
-                    )}
                   </NavLink>
                 </li>
               ))}

@@ -70,7 +70,7 @@ Investment Optimization → Set budget → Review exposure → Compare controls
 
 ### Dashboard screen scope — DECIDED
 
-Seven screens are in scope for the dashboard phase, all nested under
+Eight screens are in scope for the dashboard phase, all nested under
 `/dashboard` (see `FRONTEND_ARCHITECTURE.md` §3):
 
 | Screen | Primary backend endpoints |
@@ -82,6 +82,7 @@ Seven screens are in scope for the dashboard phase, all nested under
 | Investment Optimization | `POST /optimization/run`, `GET /controls` |
 | What-if Simulation | `POST /optimization/before-after`, `GET /decision/{id}/marginal-budget` |
 | Action Center | `GET /decision/{id}/alternatives`, `/opportunity-cost`, `/explanation` |
+| Bulk Assessment | `POST /risk/calculate`, `POST /financial-crq/calculate` (per CSV row, live only — nothing persisted) |
 
 **Action Center** and **What-if Simulation** are in scope because both map to
 stages the product pipeline already claims: Action Center is the final

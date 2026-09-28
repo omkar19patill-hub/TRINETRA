@@ -6,11 +6,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Home from './pages/marketing/Home'
 import DashboardLayout from './layouts/DashboardLayout'
 import Dashboard from './pages/dashboard/Dashboard'
-import DashboardPlaceholder from './pages/dashboard/Placeholder'
 import InvestmentOptimization from './pages/dashboard/InvestmentOptimization'
 import FinancialRisk from './pages/dashboard/FinancialRisk'
 import ThreatIntelligence from './pages/dashboard/ThreatIntelligence'
 import RiskAnalysis from './pages/dashboard/RiskAnalysis'
+import WhatIfSimulation from './pages/dashboard/WhatIfSimulation'
+import ActionCenter from './pages/dashboard/ActionCenter'
+import BulkAssessment from './pages/dashboard/BulkAssessment'
 import NotFound from './pages/NotFound'
 import './styles/globals.css'
 
@@ -37,8 +39,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="risk" element={<RiskAnalysis />} />
             <Route path="financial" element={<FinancialRisk />} />
             <Route path="investments" element={<InvestmentOptimization />} />
-            <Route path="simulation" element={<DashboardPlaceholder />} />
-            <Route path="actions" element={<DashboardPlaceholder />} />
+            <Route path="simulation" element={<WhatIfSimulation />} />
+            <Route path="actions" element={<ActionCenter />} />
+            <Route path="bulk-assessment" element={<BulkAssessment />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

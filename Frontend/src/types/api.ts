@@ -80,6 +80,32 @@ export interface FinancialCRQRequest {
   currency?: string
 }
 
+/**
+ * Result of POST /financial-crq/calculate.
+ *
+ * `monte_carlo_input` is the payload this result can be fed into for a
+ * simulation; it is left untyped here because no screen currently runs one.
+ */
+export interface FinancialCRQResult {
+  asset_id: string
+  likelihood: number
+  baseline_annual_frequency: number
+  annual_event_frequency: number
+  downtime_loss: number
+  incident_response_cost: number
+  recovery_cost: number
+  regulatory_legal_cost: number
+  customer_business_impact: number
+  total_loss_magnitude: number
+  expected_annual_loss: number
+  currency: string
+  assumptions: string[]
+  model_version: string
+  explanation: string[]
+  cve_id?: string | null
+  monte_carlo_input?: unknown
+}
+
 /* ------------------------------------------------------------------ *
  * POST /optimization/run
  * ------------------------------------------------------------------ */
@@ -287,6 +313,117 @@ export interface EnrichedVulnerability {
   description: string
   source_metadata?: VulnerabilitySourceMetadata
   data_freshness?: VulnerabilityDataFreshness
+}
+
+/* ------------------------------------------------------------------ *
+ * POST /optimization/before-after
+ * ------------------------------------------------------------------ */
+
+/**
+ * Supply either an existing optimization_id, or run_parameters to simulate a
+ * scenario that has not been run. Set record_to_decision_store: false on
+ * run_parameters so a what-if simulation does not persist into the store.
+ */
+export interface BeforeAfterRequest {
+  optimization_id?: string
+  run_parameters?: OptimizationRunRequest
+}
+
+/** Risk and loss position at one point in time. */
+export interface RiskSnapshot {
+  risk_score: number
+  risk_level: string
+  likelihood: number
+  impact: number
+  expected_annual_loss: number
+  total_loss_magnitude: number
+  annual_event_frequency: number
+  downtime_loss: number
+}
+
+export interface DeltaMetrics {
+  risk_reduction_points: number
+  risk_reduction_percent: number
+  financial_loss_avoided: number
+  financial_loss_avoided_percent: number
+  total_investment_cost: number
+  net_annual_financial_benefit: number
+  return_on_security_investment: number
+}
+
+export interface BeforeAfterResponse {
+  optimization_id: string
+  baseline: RiskSnapshot
+  residual: RiskSnapshot
+  deltas: DeltaMetrics
+  controls_applied: string[]
+  model_version?: string
+  data_source?: string
+  is_benchmark?: boolean
+}
+
+/* ------------------------------------------------------------------ *
+ * GET /decision/{optimization_id}/marginal-budget
+ * ------------------------------------------------------------------ */
+
+export interface MarginalBudgetEvaluation {
+  additional_budget: number
+  additional_risk_reduction: number
+  marginal_reduction_per_rupee: number
+  total_budget: number
+  total_risk_reduction: number
+  efficiency_assessment: string
+  explanation: string
+  additional_controls_selected?: string[]
+}
+
+export interface MarginalBudgetResponse {
+  optimization_id: string
+  base_budget: number
+  base_risk_reduction: number
+  evaluations: MarginalBudgetEvaluation[]
+  diminishing_returns_observed: boolean
+  recommendation: string
+  currency?: string
+  data_source?: string
+  is_benchmark?: boolean
+  model_version?: string
+  assessment_id?: string | null
+}
+
+/* ------------------------------------------------------------------ *
+ * GET /decision/{optimization_id}/opportunity-cost
+ * ------------------------------------------------------------------ */
+
+/** `controls_gained` / `controls_sacrificed` hold control IDs. */
+export interface OpportunityCostComparison {
+  compared_portfolio_id: string
+  compared_objective: string
+  selected_risk_reduction: number
+  compared_risk_reduction: number
+  risk_reduction_difference: number
+  cost_difference: number
+  workforce_hours_difference: number
+  implementation_days_difference: number
+  tradeoff_narrative: string
+  controls_gained?: string[]
+  controls_sacrificed?: string[]
+}
+
+export interface OpportunityCostResponse {
+  optimization_id: string
+  selected_portfolio_id: string
+  selected_portfolio_name: string
+  selected_risk_reduction: number
+  selected_total_cost: number
+  comparisons: OpportunityCostComparison[]
+  summary_statement: string
+  currency?: string
+  assumptions?: string[]
+  data_source?: string
+  is_benchmark?: boolean
+  model_version?: string
+  assessment_id?: string | null
 }
 
 /* ------------------------------------------------------------------ *
