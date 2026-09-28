@@ -1,5 +1,6 @@
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
+import { Link } from "react-router-dom"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,6 +19,7 @@ export function Navbar() {
             <a href="#how-it-works" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">How it works</a>
             <a href="#intelligence" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Intelligence</a>
             <a href="#platform" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Platform</a>
+            <Link to="/dashboard" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Dashboard</Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -41,6 +43,7 @@ export function Navbar() {
             <a href="#how-it-works" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">How it works</a>
             <a href="#intelligence" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Intelligence</a>
             <a href="#platform" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Platform</a>
+            <Link to="/dashboard" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Dashboard</Link>
             <a href="#platform" onClick={() => setIsOpen(false)} className="mt-1 text-center text-sm font-medium text-black bg-t3 px-4 py-2.5 rounded-sm">Explore the platform</a>
           </div>
         )}
