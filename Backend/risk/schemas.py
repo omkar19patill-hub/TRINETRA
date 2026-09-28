@@ -325,5 +325,56 @@ class RiskChangeResponse(BaseModel):
     high_risk_assets_change: Optional[int] = Field(default=None, description="Change in high-risk assets count (current - previous)")
 
 
+class RiskAppetiteStatus(str, Enum):
+    """Categorical compliance status of current exposure against risk appetite."""
+    NOT_CONFIGURED = "NOT_CONFIGURED"
+    WITHIN_APPETITE = "WITHIN_APPETITE"
+    AT_APPETITE = "AT_APPETITE"
+    ABOVE_APPETITE = "ABOVE_APPETITE"
+
+
+class RiskAppetiteRequest(BaseModel):
+    """Input payload for setting or updating organizational risk appetite."""
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    risk_appetite: float = Field(
+        ge=0.0,
+        description="Maximum acceptable monetary cyber risk exposure in INR (>= 0.0)",
+        examples=[3000000.0],
+    )
+
+
+class RiskIntelligenceResponse(BaseModel):
+    """Executive cyber risk intelligence contract combining exposure, appetite, and cyber risk debt."""
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    current_exposure: Optional[float] = Field(
+        default=None,
+        description="Current aggregate Expected Annual Loss (EAL) in INR from the latest snapshot",
+    )
+    risk_appetite: Optional[float] = Field(
+        default=None,
+        description="Configured maximum acceptable monetary cyber risk exposure in INR",
+    )
+    risk_debt: Optional[float] = Field(
+        default=None,
+        description="Cyber risk debt: max(current_exposure - risk_appetite, 0.0). None if not configured or no exposure",
+    )
+    status: RiskAppetiteStatus = Field(
+        description="Appetite compliance status (NOT_CONFIGURED, WITHIN_APPETITE, AT_APPETITE, ABOVE_APPETITE)",
+    )
+    has_exposure: bool = Field(
+        description="True if a valid current risk snapshot with exposure exists",
+    )
+    has_risk_appetite: bool = Field(
+        description="True if an organizational risk appetite has been configured",
+    )
+
+
+
 
 

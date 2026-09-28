@@ -267,7 +267,10 @@ def root_info():
             "risk_history": "/risk/history",
             "risk_latest": "/risk/latest",
             "risk_change": "/risk/change",
+            "risk_intelligence": "/risk/intelligence",
+            "risk_appetite": "/risk/appetite",
             "risk_health": "/risk/health",
+
 
 
             "financial_crq_calculate": "/financial-crq/calculate",

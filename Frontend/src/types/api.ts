@@ -508,4 +508,24 @@ export interface RiskChangeResponse {
   high_risk_assets_change?: number | null
 }
 
+export type RiskAppetiteStatus =
+  | 'NOT_CONFIGURED'
+  | 'WITHIN_APPETITE'
+  | 'AT_APPETITE'
+  | 'ABOVE_APPETITE'
+
+export interface RiskAppetiteRequest {
+  risk_appetite: number
+}
+
+export interface RiskIntelligenceResponse {
+  current_exposure?: number | null
+  risk_appetite?: number | null
+  risk_debt?: number | null
+  status: RiskAppetiteStatus
+  has_exposure: boolean
+  has_risk_appetite: boolean
+}
+
+
 

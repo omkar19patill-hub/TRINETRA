@@ -16,13 +16,17 @@ from risk.schemas import (
     AssessmentBatchResponse,
     RiskSnapshotResponse,
     RiskChangeResponse,
+    RiskAppetiteRequest,
+    RiskIntelligenceResponse,
 )
 from risk.engine import calculate_risk
 from risk.constants import MODEL_VERSION
 from risk.storage import AssessmentStorage, get_assessment_storage
 from risk.change_detector import detect_latest_risk_change
+from risk.risk_intelligence import get_risk_intelligence
 
 router = APIRouter(prefix="/risk", tags=["Risk Engine"])
+
 
 
 
@@ -133,6 +137,43 @@ def get_risk_change_endpoint(
 
 
 @router.get(
+    "/intelligence",
+    response_model=RiskIntelligenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current cyber risk intelligence, appetite, and debt",
+    description="""
+Returns current organizational financial exposure, configured risk appetite,
+calculated cyber risk debt, and appetite compliance status (WITHIN_APPETITE, AT_APPETITE, ABOVE_APPETITE, NOT_CONFIGURED).
+""",
+)
+def get_risk_intelligence_endpoint(
+    storage: AssessmentStorage = Depends(get_assessment_storage),
+) -> RiskIntelligenceResponse:
+    """Retrieve current executive risk intelligence and appetite posture."""
+    return get_risk_intelligence(storage)
+
+
+@router.put(
+    "/appetite",
+    response_model=RiskIntelligenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Configure organizational risk appetite",
+    description="""
+Sets the maximum acceptable monetary cyber risk exposure in INR.
+Recomputes cyber risk debt and appetite compliance status immediately.
+""",
+)
+def set_risk_appetite_endpoint(
+    request: RiskAppetiteRequest,
+    storage: AssessmentStorage = Depends(get_assessment_storage),
+) -> RiskIntelligenceResponse:
+    """Set organizational risk appetite and return updated risk intelligence."""
+    storage.set_current_risk_appetite(request.risk_appetite)
+    return get_risk_intelligence(storage)
+
+
+@router.get(
+
 
 
     "/health",

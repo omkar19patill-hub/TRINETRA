@@ -32,7 +32,12 @@
  */
 
 import { env } from '../config/env'
-import type { ProvenanceMarked, RiskChangeResponse, RiskSnapshotResponse } from '../types/api'
+import type {
+  ProvenanceMarked,
+  RiskChangeResponse,
+  RiskIntelligenceResponse,
+  RiskSnapshotResponse,
+} from '../types/api'
 
 /** A single field-level validation problem, parsed from a 422 response. */
 export interface FieldError {
@@ -187,7 +192,15 @@ export const api = {
       { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) },
       params,
     ),
+
+  put: <T>(path: string, body?: unknown, params?: Record<string, QueryValue | undefined>): Promise<T> =>
+    apiRequest<T>(
+      path,
+      { method: 'PUT', body: body === undefined ? undefined : JSON.stringify(body) },
+      params,
+    ),
 }
+
 
 /* ------------------------------------------------------------------ *
  * Benchmark provenance guards — see the file header.
@@ -255,4 +268,19 @@ export async function getLatestRiskSnapshot(): Promise<RiskSnapshotResponse | nu
 export async function getRiskChange(): Promise<RiskChangeResponse> {
   return api.get<RiskChangeResponse>('/risk/change')
 }
+
+/**
+ * Fetch current cyber risk intelligence (exposure, appetite, debt, and compliance status).
+ */
+export async function getRiskIntelligence(): Promise<RiskIntelligenceResponse> {
+  return api.get<RiskIntelligenceResponse>('/risk/intelligence')
+}
+
+/**
+ * Configure organizational risk appetite threshold in INR.
+ */
+export async function setRiskAppetite(appetite: number): Promise<RiskIntelligenceResponse> {
+  return api.put<RiskIntelligenceResponse>('/risk/appetite', { risk_appetite: appetite })
+}
+
 

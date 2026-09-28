@@ -119,6 +119,16 @@ class AssessmentStorage:
             "CREATE INDEX IF NOT EXISTS idx_snapshot_batch_id ON risk_snapshots(batch_id);"
         )
 
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS risk_appetite_config (
+                id TEXT PRIMARY KEY,
+                risk_appetite REAL,
+                updated_at TEXT NOT NULL
+            );
+            """
+        )
+
     def _ensure_schema_initialized(self):
         """Ensure parent directory exists and tables are initialized."""
         db_file = Path(self.db_path)
@@ -162,6 +172,11 @@ class AssessmentStorage:
         )
         critical_count = sum(1 for r in results if r.risk_score >= 75.0)
         high_count = sum(1 for r in results if 50.0 <= r.risk_score < 75.0)
+        active_appetite = (
+            batch_data.risk_appetite
+            if batch_data.risk_appetite is not None
+            else self.get_current_risk_appetite()
+        )
 
         with self._lock:
             conn = self._get_connection()
@@ -226,7 +241,7 @@ class AssessmentStorage:
                             avg_risk,
                             critical_count,
                             high_count,
-                            batch_data.risk_appetite,
+                            active_appetite,
                             now_iso,
                         ),
                     )
@@ -246,7 +261,7 @@ class AssessmentStorage:
                     average_risk=avg_risk,
                     critical_assets=critical_count,
                     high_risk_assets=high_count,
-                    risk_appetite=batch_data.risk_appetite,
+                    risk_appetite=active_appetite,
                     created_at=now_iso,
                 )
 
@@ -348,6 +363,44 @@ class AssessmentStorage:
             )
             row = cursor.fetchone()
             return dict(row) if row else None
+        finally:
+            conn.close()
+
+    def set_current_risk_appetite(self, appetite: float) -> float:
+        """Store or update the current organizational risk appetite threshold."""
+        now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        conn = self._get_connection()
+        try:
+            with conn:
+                conn.execute(
+                    """
+                    INSERT INTO risk_appetite_config (id, risk_appetite, updated_at)
+                    VALUES ('CURRENT', ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        risk_appetite = excluded.risk_appetite,
+                        updated_at = excluded.updated_at;
+                    """,
+                    (appetite, now_iso),
+                )
+            return appetite
+        finally:
+            conn.close()
+
+    def get_current_risk_appetite(self) -> Optional[float]:
+        """Retrieve the current configured organizational risk appetite threshold."""
+        conn = self._get_connection()
+        try:
+            cursor = conn.execute(
+                "SELECT risk_appetite FROM risk_appetite_config WHERE id = 'CURRENT';"
+            )
+            row = cursor.fetchone()
+            if row and row["risk_appetite"] is not None:
+                return float(row["risk_appetite"])
+            # Fallback to the latest snapshot's appetite if no explicit config row exists
+            latest = self.get_latest_snapshot()
+            if latest and latest.get("risk_appetite") is not None:
+                return float(latest["risk_appetite"])
+            return None
         finally:
             conn.close()
 

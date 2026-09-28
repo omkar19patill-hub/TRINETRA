@@ -1,15 +1,25 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card, CardContent } from '../../components/ui/Card'
 import { MetricCard } from '../../components/ui/MetricCard'
-import { getRiskChange, partitionByProvenance } from '../../lib/apiClient'
+import {
+  getRiskChange,
+  getRiskIntelligence,
+  partitionByProvenance,
+  setRiskAppetite,
+} from '../../lib/apiClient'
 import { formatInr, formatScore, pickBudget } from '../../components/dashboard/format'
 import { ErrorPanel, LoadingCard } from '../../components/dashboard/states'
 import { useAssets, useOptimizations, useRunOptimization } from '../../hooks/useOptimization'
-import type { OptimizationRunResponse, RiskChangeResponse } from '../../types/api'
+import type {
+  OptimizationRunResponse,
+  RiskChangeResponse,
+  RiskIntelligenceResponse,
+} from '../../types/api'
+
 
 
 /* ------------------------------------------------------------------ *
@@ -170,101 +180,199 @@ function ResultView(props: { result: OptimizationRunResponse; isDemoData: boolea
 }
 
 /* ------------------------------------------------------------------ *
- * Run-over-Run Risk Change (Phase 3)
+ * Risk Intelligence & Governance (Phase 4)
  * ------------------------------------------------------------------ */
 
-function RiskChangeSection() {
-  const { data: change } = useQuery<RiskChangeResponse>({
+function RiskIntelligenceSection() {
+  const queryClient = useQueryClient()
+  const [isEditingAppetite, setIsEditingAppetite] = useState(false)
+  const [appetiteInput, setAppetiteInput] = useState('')
+
+  const intelQuery = useQuery<RiskIntelligenceResponse>({
+    queryKey: ['risk-intelligence'],
+    queryFn: getRiskIntelligence,
+  })
+
+  const changeQuery = useQuery<RiskChangeResponse>({
     queryKey: ['risk-change'],
     queryFn: getRiskChange,
   })
 
-  if (!change || !change.has_history) {
+  const updateAppetite = useMutation({
+    mutationFn: (newAppetite: number) => setRiskAppetite(newAppetite),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['risk-intelligence'] })
+      setIsEditingAppetite(false)
+    },
+  })
+
+  const intel = intelQuery.data
+  const change = changeQuery.data
+
+  if (!intel || !intel.has_exposure) {
     return null
   }
 
-  if (!change.has_baseline) {
-    return (
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-tertiary">
-          Baseline Risk Assessment
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+  function handleSaveAppetite(e: React.FormEvent) {
+    e.preventDefault()
+    const num = parseFloat(appetiteInput)
+    if (!isNaN(num) && num >= 0) {
+      updateAppetite.mutate(num)
+    }
+  }
+
+  // Determine badge variant and label
+  let statusVariant: 'success' | 'medium' | 'critical' | 'neutral' = 'neutral'
+  let statusLabel = 'NOT CONFIGURED'
+  let statusContext = 'Set organizational risk appetite to evaluate compliance'
+
+  if (intel.status === 'WITHIN_APPETITE') {
+    statusVariant = 'success'
+    statusLabel = 'WITHIN APPETITE'
+    statusContext = 'Exposure is within acceptable threshold'
+  } else if (intel.status === 'AT_APPETITE') {
+    statusVariant = 'medium'
+    statusLabel = 'AT APPETITE'
+    statusContext = 'Exposure exactly matches threshold limit'
+  } else if (intel.status === 'ABOVE_APPETITE') {
+    statusVariant = 'critical'
+    statusLabel = 'ABOVE APPETITE'
+    statusContext = `${formatInr(intel.risk_debt ?? 0)} sitting above risk appetite`
+  }
+
+  // Change metrics from Phase 3
+  const absChange = change?.absolute_change ?? 0
+  const isExpIncreased = absChange > 0
+  const pctStr =
+    change?.percentage_change !== null && change?.percentage_change !== undefined
+      ? `${change.percentage_change > 0 ? '+' : ''}${change.percentage_change.toFixed(1)}%`
+      : null
+
+  const exposureContext = change?.has_baseline
+    ? `Prev: ${formatInr(change.previous_exposure ?? 0)} (${isExpIncreased ? '+' : ''}${formatInr(absChange)}${pctStr ? `, ${pctStr}` : ''})`
+    : 'Baseline Expected Annual Loss'
+
+  return (
+    <section className="mb-8 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">
+            Risk Intelligence & Governance
+          </h2>
+          <Badge variant={statusVariant}>{statusLabel}</Badge>
+        </div>
+        <div>
+          {!isEditingAppetite ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setAppetiteInput(
+                  intel.risk_appetite !== null && intel.risk_appetite !== undefined
+                    ? String(intel.risk_appetite)
+                    : ''
+                )
+                setIsEditingAppetite(true)
+              }}
+            >
+              {intel.has_risk_appetite ? 'Adjust Appetite' : 'Configure Risk Appetite'}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {isEditingAppetite ? (
+        <Card className="border-border-default/80 bg-surface-muted/50 p-4">
+          <form onSubmit={handleSaveAppetite} className="flex flex-wrap items-center gap-3">
+            <label htmlFor="appetite-input" className="text-xs font-medium text-text-primary">
+              Set Monetary Risk Appetite (₹ INR):
+            </label>
+            <input
+              id="appetite-input"
+              type="number"
+              min="0"
+              step="1000"
+              required
+              placeholder="e.g. 3000000"
+              value={appetiteInput}
+              onChange={(e) => setAppetiteInput(e.target.value)}
+              className="rounded-md border border-border-default bg-surface-base px-3 py-1.5 text-sm text-text-secondary outline-none focus:border-border-hover focus:ring-1 focus:ring-border-hover"
+            />
+            <Button type="submit" size="sm" loading={updateAppetite.isPending}>
+              Save Appetite
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditingAppetite(false)}
+            >
+              Cancel
+            </Button>
+          </form>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="Financial Exposure"
+          value={formatInr(intel.current_exposure ?? 0)}
+          context={exposureContext}
+          source="Assessment Storage"
+        />
+        <MetricCard
+          label="Risk Appetite"
+          value={intel.has_risk_appetite ? formatInr(intel.risk_appetite ?? 0) : 'Not configured'}
+          context="Maximum acceptable cyber exposure"
+          source="Organizational Policy"
+        />
+        <MetricCard
+          label="Cyber Risk Debt"
+          value={intel.has_risk_appetite && intel.risk_debt != null ? formatInr(intel.risk_debt) : '—'}
+          context={
+            intel.has_risk_appetite && intel.risk_debt != null && intel.risk_debt > 0
+              ? 'Unmitigated excess loss exposure'
+              : 'Zero unmitigated risk debt'
+          }
+          source="Continuous CRQ Engine"
+        />
+
+        <MetricCard
+          label="Appetite Compliance"
+          value={statusLabel}
+          context={statusContext}
+          source="Risk Governance"
+        />
+      </div>
+
+      {change?.has_baseline ? (
+        <div className="mt-2 grid gap-4 sm:grid-cols-3">
           <MetricCard
-            label="Current Exposure"
-            value={formatInr(change.current_exposure ?? 0)}
-            context="Baseline Expected Annual Loss (EAL)"
-            source="Assessment Storage"
+            label="Run-over-Run Delta"
+            value={`${isExpIncreased ? '+' : ''}${formatInr(absChange)}`}
+            context={pctStr ? `Exposure change: ${pctStr}` : 'Exposure unchanged'}
+            source="Phase 3 Detector"
           />
           <MetricCard
-            label="Average Risk"
+            label="Average Risk Score"
             value={formatScore(change.current_average_risk ?? 0)}
-            context={`${change.current_critical_assets ?? 0} critical, ${change.current_high_risk_assets ?? 0} high-risk assets`}
+            context={`Change: ${
+              change.average_risk_change !== null && (change.average_risk_change ?? 0) > 0 ? '+' : ''
+            }${(change.average_risk_change ?? 0).toFixed(1)} pts`}
             source="Assessment Storage"
           />
           <MetricCard
-            label="Historical Comparison"
-            value="Baseline Set"
-            context="Run another bulk assessment to compute run-over-run risk change."
+            label="Asset Criticality Shifts"
+            value={`Crit: ${
+              change.critical_assets_change !== null && (change.critical_assets_change ?? 0) > 0 ? '+' : ''
+            }${change.critical_assets_change ?? 0} | High: ${
+              change.high_risk_assets_change !== null && (change.high_risk_assets_change ?? 0) > 0 ? '+' : ''
+            }${change.high_risk_assets_change ?? 0}`}
+            context={`Critical: ${change.previous_critical_assets ?? 0} → ${change.current_critical_assets ?? 0}, High: ${change.previous_high_risk_assets ?? 0} → ${change.current_high_risk_assets ?? 0}`}
             source="Assessment Storage"
           />
         </div>
-      </section>
-    )
-  }
-
-  const absChange = change.absolute_change ?? 0
-  const isExpIncreased = absChange > 0
-  const pctStr =
-    change.percentage_change !== null && change.percentage_change !== undefined
-      ? `${change.percentage_change > 0 ? '+' : ''}${change.percentage_change.toFixed(1)}%`
-      : 'N/A'
-
-  const avgDiff = change.average_risk_change ?? 0
-  const avgDiffStr = `${avgDiff > 0 ? '+' : ''}${avgDiff.toFixed(1)} pts`
-
-  const critDiff = change.critical_assets_change ?? 0
-  const critDiffStr = `${critDiff > 0 ? '+' : ''}${critDiff}`
-
-  const highDiff = change.high_risk_assets_change ?? 0
-  const highDiffStr = `${highDiff > 0 ? '+' : ''}${highDiff}`
-
-  return (
-    <section className="mb-8">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">
-          Run-over-Run Risk Change
-        </h2>
-        <span className="text-xs text-text-inverse">
-          Latest vs Previous Assessment Snapshot
-        </span>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Current Exposure"
-          value={formatInr(change.current_exposure ?? 0)}
-          context={`Previous: ${formatInr(change.previous_exposure ?? 0)}`}
-          source="Assessment Storage"
-        />
-        <MetricCard
-          label="Absolute Change"
-          value={`${isExpIncreased ? '+' : ''}${formatInr(absChange)}`}
-          context={`Percentage: ${pctStr}`}
-          source="Assessment Storage"
-        />
-        <MetricCard
-          label="Average Risk Change"
-          value={avgDiffStr}
-          context={`From ${formatScore(change.previous_average_risk ?? 0)} to ${formatScore(change.current_average_risk ?? 0)}`}
-          source="Assessment Storage"
-        />
-        <MetricCard
-          label="Asset Tier Shifts"
-          value={`Crit: ${critDiffStr} | High: ${highDiffStr}`}
-          context={`Critical: ${change.previous_critical_assets ?? 0} → ${change.current_critical_assets ?? 0}, High: ${change.previous_high_risk_assets ?? 0} → ${change.current_high_risk_assets ?? 0}`}
-          source="Assessment Storage"
-        />
-      </div>
+      ) : null}
     </section>
   )
 }
@@ -344,7 +452,7 @@ export default function Dashboard() {
     return (
       <div>
         {heading}
-        <RiskChangeSection />
+        <RiskIntelligenceSection />
         <ResultView result={result} isDemoData={result.is_benchmark === true} />
       </div>
     )
@@ -356,13 +464,14 @@ export default function Dashboard() {
   return (
     <div>
       {heading}
-      <RiskChangeSection />
+      <RiskIntelligenceSection />
       <RunPrompt
         title={
           hasRealData
             ? `${realCount} optimization${plural} on record`
             : 'No optimization has been run yet'
         }
+
         description={
           hasRealData
             ? 'Run a fresh optimization to see current numbers.'

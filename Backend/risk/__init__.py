@@ -29,6 +29,9 @@ from .schemas import (
     RiskSnapshotResponse,
     AssessmentBatchResponse,
     RiskChangeResponse,
+    RiskAppetiteStatus,
+    RiskAppetiteRequest,
+    RiskIntelligenceResponse,
 )
 
 from .scoring import (
@@ -41,7 +44,9 @@ from .scoring import (
 from .drivers import generate_risk_drivers
 from .engine import calculate_risk
 from .change_detector import compute_risk_change, detect_latest_risk_change
+from .risk_intelligence import calculate_risk_intelligence, get_risk_intelligence
 from .storage import (
+
     AssessmentStorage,
     get_assessment_storage,
     set_assessment_storage,
@@ -70,8 +75,10 @@ __all__ = [
     "RiskSnapshotResponse",
     "AssessmentBatchResponse",
     "RiskChangeResponse",
+    "RiskAppetiteStatus",
+    "RiskAppetiteRequest",
+    "RiskIntelligenceResponse",
     "AssessmentStorage",
-
     "get_assessment_storage",
     "set_assessment_storage",
     "init_assessment_storage",
@@ -84,7 +91,10 @@ __all__ = [
     "calculate_risk",
     "compute_risk_change",
     "detect_latest_risk_change",
+    "calculate_risk_intelligence",
+    "get_risk_intelligence",
 ]
+
 
 
 
