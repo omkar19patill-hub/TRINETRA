@@ -11,13 +11,30 @@
   body {
     margin: 0;
     background: #000000;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Primary Editorial Typography: Headings & display text in Playfair Display */
+  h1, h2, .font-heading, .font-display, .font-serif {
+    font-family: var(--font-heading);
+  }
+
+  /* Editorial section title subheadings */
+  h3:not(.uppercase) {
+    font-family: var(--font-heading);
+  }
+
+  /* Technical data subheadings, form controls, buttons, pills retain UI sans-serif */
+  button, input, select, textarea, .pill, .font-ui, h2.uppercase, h3.uppercase {
+    font-family: var(--font-ui);
   }
   ::selection { background: rgba(51,85,255,0.35); color: #fafafa; }
 }
 
 @layer utilities {
+  .font-instrument { font-family: var(--font-instrument); }
+  .font-space-mono { font-family: var(--font-space-mono); }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 

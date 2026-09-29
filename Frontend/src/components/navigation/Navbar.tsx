@@ -1,52 +1,97 @@
-import { Menu, X } from "lucide-react"
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { cn } from "../../lib/utils"
+import CircularText from "./CircularText"
+import PillNav from "./PillNav"
+import type { PillNavItem } from "./PillNav"
+import "./PillNav.trinetra.css"
 
-export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
+const LINKS: PillNavItem[] = [
+  { label: "Problem", href: "#problem" },
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Intelligence", href: "#intelligence" },
+  { label: "Platform", href: "#platform" },
+  { label: "Dashboard", href: "/dashboard" },
+]
+
+const MOBILE_ITEMS: PillNavItem[] = [...LINKS, { label: "Explore the platform", href: "#platform" }]
+
+const MOBILE_QUERY = "(max-width: 768px)"
+
+/** Matches PillNav's own 768px mobile switch, so the two never disagree. */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(MOBILE_QUERY).matches : false
+  )
+
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_QUERY)
+    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    query.addEventListener("change", onChange)
+    return () => query.removeEventListener("change", onChange)
+  }, [])
+
+  return isMobile
+}
+
+export interface NavbarProps {
+  isVisible?: boolean
+}
+
+export function Navbar({ isVisible = true }: NavbarProps) {
+  const isMobile = useIsMobile()
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50">
+    <header
+      className={cn(
+        "trinetra-nav fixed top-0 inset-x-0 z-50 transition-all duration-300 ease-out",
+        isVisible
+          ? "opacity-100 translate-y-0 visible pointer-events-auto"
+          : "opacity-0 -translate-y-4 invisible pointer-events-none"
+      )}
+      aria-hidden={!isVisible}
+    >
       <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-4">
-        <div className="flex items-center justify-between rounded-xl border border-bd/70 bg-black/60 backdrop-blur-xl px-4 py-2.5">
-          <a href="#top" className="flex items-center gap-2.5 shrink-0">
-            <img src="/images/symbol.png" alt="" className="h-7 w-7 object-contain" />
-            <span className="font-semibold tracking-tight text-t3 text-[15px]">TRINETRA</span>
+        <div className="relative flex items-center justify-between min-h-[44px]">
+          <a
+            href="#top"
+            className="nav-brand relative flex items-center justify-center w-[135px] h-[135px] shrink-0"
+            aria-label="TRINETRA Home"
+            tabIndex={isVisible ? 0 : -1}
+          >
+            <div
+              className={cn(
+                "absolute flex items-center justify-center",
+                isVisible ? "pointer-events-auto" : "pointer-events-none"
+              )}
+              style={{
+                width: 320,
+                height: 320,
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) scale(0.422)",
+                transformOrigin: "center center",
+              }}
+            >
+              <CircularText />
+            </div>
           </a>
 
-          <nav className="hidden md:flex items-center gap-1 rounded-full bg-gradient-to-br from-white/[0.06] to-transparent border border-white/[0.06] px-1.5 py-1.5 absolute left-1/2 -translate-x-1/2">
-            <a href="#problem" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Problem</a>
-            <a href="#how-it-works" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">How it works</a>
-            <a href="#intelligence" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Intelligence</a>
-            <a href="#platform" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Platform</a>
-            <Link to="/dashboard" className="px-4 py-1.5 text-[13px] text-t1 hover:text-t3 rounded-full hover:bg-white/[0.06] transition-colors">Dashboard</Link>
-          </nav>
+          <PillNav
+            items={isMobile ? MOBILE_ITEMS : LINKS}
+            baseColor="#FFFFFF"
+            pillColor="#050505"
+            pillTextColor="#FAFAFA"
+            hoveredPillTextColor="#050505"
+          />
 
-          <div className="flex items-center gap-2">
-            <a href="#platform" className="hidden sm:inline-flex items-center text-[13px] font-medium text-black bg-t3 hover:bg-t2 px-4 py-2 rounded-sm transition-colors">
-              Explore the platform
-            </a>
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Open menu" 
-              aria-expanded={isOpen} 
-              className="md:hidden p-2 text-t2"
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+          <a
+            href="#platform"
+            tabIndex={isVisible ? 0 : -1}
+            className="nav-cta inline-flex items-center text-[13px] font-medium text-black bg-t3 hover:bg-t2 px-4 py-2 rounded-sm transition-colors"
+          >
+            Explore the platform
+          </a>
         </div>
-
-        {isOpen && (
-          <div className="md:hidden mt-2 rounded-xl border border-bd/70 bg-black/95 backdrop-blur-xl p-3 flex flex-col gap-1">
-            <a href="#problem" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Problem</a>
-            <a href="#how-it-works" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">How it works</a>
-            <a href="#intelligence" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Intelligence</a>
-            <a href="#platform" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Platform</a>
-            <Link to="/dashboard" onClick={() => setIsOpen(false)} className="px-3 py-2.5 text-sm text-t1 hover:text-t3 rounded-sm">Dashboard</Link>
-            <a href="#platform" onClick={() => setIsOpen(false)} className="mt-1 text-center text-sm font-medium text-black bg-t3 px-4 py-2.5 rounded-sm">Explore the platform</a>
-          </div>
-        )}
       </div>
     </header>
   )

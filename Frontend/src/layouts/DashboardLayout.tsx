@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function DashboardLayout() {
   return (
-    <div className="min-h-screen bg-surface-base text-text-secondary">
+    <div className="min-h-screen text-text-secondary">
       <div className="mx-auto flex max-w-[1320px] flex-col md:flex-row">
         <aside className="w-full border-b border-border-default md:min-h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r">
           <div className="p-6">

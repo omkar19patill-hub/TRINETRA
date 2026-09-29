@@ -7,7 +7,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        serif: ['var(--font-serif)', '"Playfair Display"', 'Georgia', 'serif'],
+        instrument: ['var(--font-instrument)', '"Instrument Serif"', 'Georgia', 'serif'],
+        'accent-serif': ['var(--font-accent-serif)', '"Instrument Serif"', 'Georgia', 'serif'],
+        'space-mono': ['var(--font-space-mono)', '"Space Mono"', 'monospace'],
+        sans: ['var(--font-sans)', 'Inter', 'sans-serif'],
+        heading: ['var(--font-heading)', '"Playfair Display"', 'Georgia', 'serif'],
+        mono: ['var(--font-mono)', 'monospace'],
       },
       colors: {
         base: '#000000',
