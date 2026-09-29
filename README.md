@@ -46,14 +46,7 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React.js + Tailwind CSS |
-| Backend | Python (FastAPI) |
-| AI/ML | LLM API (explanation, asset-to-CVE mapping) + scikit-learn/PyMC |
-| Database | PostgreSQL + Redis |
-| Optimization | SciPy / PuLP |
-| Deployment | Docker, cloud free-tier (AWS/GCP/Azure) |
+![TRINETRA Tech Stack](Assets/TechStack.png)
 
 ## Data Sources
 
