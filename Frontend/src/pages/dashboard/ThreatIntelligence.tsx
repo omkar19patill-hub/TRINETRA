@@ -30,11 +30,14 @@ function severityVariant(severity: string): SeverityVariant {
   }
 }
 
-function formatEpss(value: number): string {
+function formatEpss(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return '—'
+  }
   return `${(value * 100).toFixed(1)}%`
 }
 
-function formatDate(value: string | undefined): string {
+function formatDate(value: string | null | undefined): string {
   if (!value) {
     return '—'
   }

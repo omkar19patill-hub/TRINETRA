@@ -264,11 +264,11 @@ export interface VulnerabilityListItem {
   cve_id: string
   cvss: number
   severity: string
-  epss: number
+  epss: number | null
   kev: boolean
   known_ransomware_use: boolean
   ingested_at: string
-  last_modified_at: string
+  last_modified_at: string | null
 }
 
 export interface VulnerabilityListResponse {
