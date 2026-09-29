@@ -43,18 +43,21 @@ export function Navbar({ isVisible = true }: NavbarProps) {
   return (
     <header
       className={cn(
-        "trinetra-nav fixed top-0 inset-x-0 z-50 transition-all duration-300 ease-out",
+        "trinetra-nav fixed top-0 inset-x-0 z-50 transition-opacity duration-300 ease-out",
         isVisible
-          ? "opacity-100 translate-y-0 visible pointer-events-auto"
-          : "opacity-0 -translate-y-4 invisible pointer-events-none"
+          ? "opacity-100 visible pointer-events-auto"
+          : "opacity-0 invisible pointer-events-none"
       )}
       aria-hidden={!isVisible}
     >
       <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-4">
         <div className="relative flex items-center justify-between min-h-[44px]">
+          {/* Spacer preserving the 135px slot so PillNav remains centered and nav-cta stays right-aligned */}
+          <div className="w-[135px] h-[135px] shrink-0 pointer-events-none" aria-hidden="true" />
+
           <a
             href="#top"
-            className="nav-brand relative flex items-center justify-center w-[135px] h-[135px] shrink-0"
+            className="nav-brand flex items-center justify-center w-[135px] h-[135px] shrink-0"
             aria-label="TRINETRA Home"
             tabIndex={isVisible ? 0 : -1}
           >

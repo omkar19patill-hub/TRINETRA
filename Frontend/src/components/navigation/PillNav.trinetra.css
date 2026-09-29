@@ -23,6 +23,20 @@
   border-radius: 50%;
 }
 
+/* Fixed viewport positioning for the TRINETRA Text Ring */
+.trinetra-nav .nav-brand {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+}
+
+@media (min-width: 640px) {
+  .trinetra-nav .nav-brand {
+    left: max(1.5rem, calc((100vw - 1320px) / 2 + 1.5rem));
+  }
+}
+
 /* Desktop: the upstream container is position:absolute with no horizontal anchor.
    Centre it in the header, as the previous navbar pill was. */
 @media (min-width: 769px) {
