@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 export function CtaSection() {
   return (
     <section className="relative border-t border-bd/60 py-24 md:py-32">
@@ -6,10 +8,12 @@ export function CtaSection() {
           Stop guessing where your<br className="hidden sm:block"/> security budget goes.
         </h2>
         <div className="mt-10">
-          <a href="#top" className="conic-btn relative inline-flex items-center justify-center rounded-sm bg-t3 text-black text-[14px] font-medium px-7 py-3.5">
-            <span className="conic-border"></span>
-            <span className="relative z-10">Explore Trinetra</span>
-          </a>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center justify-center rounded-sm bg-t3 hover:bg-t2 text-black text-[14px] font-medium px-7 py-3.5 transition-colors"
+          >
+            Explore Trinetra
+          </Link>
         </div>
       </div>
     </section>

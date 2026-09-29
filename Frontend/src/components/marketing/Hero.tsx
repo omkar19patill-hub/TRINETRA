@@ -19,16 +19,6 @@ export function Hero() {
               Trinetra turns raw vulnerability data into a live, rupee-denominated risk number —
               and tells you exactly where the next rupee of security budget should go.
             </p>
-
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <a href="#platform" className="conic-btn relative inline-flex items-center justify-center rounded-sm bg-t3 text-black text-[14px] font-medium px-6 py-3">
-                <span className="conic-border"></span>
-                <span className="relative z-10">Explore the platform</span>
-              </a>
-              <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-t2 border border-bd hover:border-t1 px-6 py-3 rounded-sm transition-colors">
-                How it works
-              </a>
-            </div>
           </div>
 
           {/* Right: pipeline visualization */}
