@@ -1,0 +1,58 @@
+/*
+ * TRINETRA adaptations for the React Bits PillNav.
+ * Scoped to .trinetra-nav, so the upstream PillNav.css stays untouched.
+ * The 768px breakpoints below match the component's own (max-width: 768px) mobile
+ * switch exactly, so nothing double-applies at 768px.
+ */
+
+/* Match the site type scale: sentence case, 13px, like the previous navbar */
+.trinetra-nav .pill {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.trinetra-nav .mobile-menu-popover .mobile-menu-link {
+  font-size: 14px;
+}
+
+/* symbol.png has an opaque black background: round it so it reads as a badge inside the
+   circular logo instead of a black square. */
+.trinetra-nav .pill-logo img {
+  border-radius: 50%;
+}
+
+/* Desktop: the upstream container is position:absolute with no horizontal anchor.
+   Centre it in the header, as the previous navbar pill was. */
+@media (min-width: 769px) {
+  .trinetra-nav .pill-nav-container {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Mobile: PillNav without internal logo: keep the header's brand visible on the left,
+   align the mobile menu button to the right, and hide the separate desktop CTA. */
+@media (max-width: 768px) {
+  .trinetra-nav .nav-cta {
+    display: none;
+  }
+
+  .trinetra-nav .pill-nav-container {
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .trinetra-nav .pill-nav {
+    justify-content: flex-end;
+    padding: 0;
+  }
+
+  .trinetra-nav .mobile-menu-button,
+  .trinetra-nav .mobile-menu-popover {
+    pointer-events: auto;
+  }
+}

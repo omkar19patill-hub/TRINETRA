@@ -9,16 +9,13 @@ export function Hero() {
           
           {/* Left: copy */}
           <div>
-            <div className="inline-flex items-center gap-2 text-[12px] text-t1 border border-bd rounded-full px-3 py-1 mb-7">
-              <span className="w-1.5 h-1.5 rounded-full bg-low pulse-dot"></span>
-              SIH26105 &middot; Continuous Cyber Risk Quantification
-            </div>
-
-            <h1 className="text-[42px] sm:text-[54px] lg:text-[60px] font-semibold text-t3 leading-[1.02] tracking-tight">
-              See risk before<br />it strikes.
+            <h1 className="text-[42px] sm:text-[54px] lg:text-[60px] font-semibold text-t3 leading-[1.05] tracking-tight">
+              See <span className="font-instrument italic font-normal">Threat</span>.<br />
+              Measure <span className="font-instrument italic font-normal">Risk</span>.<br />
+              Optimize <span className="font-instrument italic font-normal">Investment</span>.
             </h1>
 
-            <p className="mt-6 text-[17px] leading-relaxed text-t1 max-w-[480px]">
+            <p className="mt-6 font-space-mono text-[15px] sm:text-[16px] leading-relaxed text-t1 max-w-[480px]">
               Trinetra turns raw vulnerability data into a live, rupee-denominated risk number —
               and tells you exactly where the next rupee of security budget should go.
             </p>
@@ -32,10 +29,6 @@ export function Hero() {
                 How it works
               </a>
             </div>
-
-            <p className="mt-8 text-[12px] text-t1">
-              Built on NVD &middot; CISA KEV &middot; EPSS &middot; MITRE ATT&amp;CK — refreshed continuously, not once a year.
-            </p>
           </div>
 
           {/* Right: pipeline visualization */}

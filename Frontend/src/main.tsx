@@ -14,6 +14,7 @@ import WhatIfSimulation from './pages/dashboard/WhatIfSimulation'
 import ActionCenter from './pages/dashboard/ActionCenter'
 import BulkAssessment from './pages/dashboard/BulkAssessment'
 import NotFound from './pages/NotFound'
+import AppBackground from './components/background/AppBackground'
 import './styles/globals.css'
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <AppBackground />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
