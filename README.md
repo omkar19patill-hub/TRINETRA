@@ -46,7 +46,7 @@ Cyber Threat Intelligence  →  Risk Analysis  →  Financial Risk  →  Investm
 
 ## Tech Stack
 
-![TRINETRA Tech Stack](Assets/TechStack.png)
+![TRINETRA Tech Stack](Assets/techstack.png)
 
 ## Data Sources
 
