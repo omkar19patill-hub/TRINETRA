@@ -4,8 +4,6 @@
 
 > **SIH26105** &middot; Smart India Hackathon 2026 &middot; Theme: Blockchain & Cybersecurity &middot; Sponsor: AICTE Cyber Security Cell
 
-🚧 **Work in Progress — built for SIH 2026**
-
 ---
 
 ## The Problem
